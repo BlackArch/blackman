@@ -1,0 +1,221 @@
+#!/bin/sh
+################################################################################
+#                ____                     _ __                                 #
+#     ___  __ __/ / /__ ___ ______ ______(_) /___ __                           #
+#    / _ \/ // / / (_-</ -_) __/ // / __/ / __/ // /                           #
+#   /_//_/\_,_/_/_/___/\__/\__/\_,_/_/ /_/\__/\_, /                            #
+#                                            /___/ team                        #
+#                                                                              #
+# blackman - Emerge for Blackarch                                              #
+#                                                                              #
+# FILE                                                                         #
+# blackman.sh                                                                  #
+#                                                                              #
+# DATE                                                                         #
+# 2013-12-20                                                                   #
+#                                                                              #
+# DESCRIPTION                                                                  #
+# Download and compile packages as Emerge does                                 #
+#                                                                              #
+# AUTHOR                                                                       #
+# nrz@nullsecurity.net                                                         #
+#                                                                              #
+################################################################################
+
+
+# blackman version
+VERSION="blackman v0.1"
+
+# url blackarch repository
+REPO="https://github.com/BlackArch/blackarch.git"
+
+# true / false
+FALSE="0"
+TRUE="1"
+
+# return codes
+SUCCESS="1337"
+FAILURE="31337"
+
+# verbose mode - default: quiet
+VERBOSE="/dev/null"
+
+# colors
+WHITE="$(tput bold ; tput setaf 7)"
+GREEN="$(tput setaf 2)"
+RED="$(tput bold; tput setaf 1)"
+YELLOW="$(tput bold ; tput setaf 3)"
+NC="$(tput sgr0)" # No Color
+
+
+wprintf() {
+    fmt=$1
+    shift
+    printf "%s${fmt}%s\n" "${WHITE}" "$@" "${NC}"
+
+    return "${SUCCESS}"
+}
+
+# print warning
+warn()
+{
+    printf "%s[!] WARNING: %s%s\n" "${RED}" "${*}" "${NC}"
+
+    return "${SUCCESS}"
+}
+
+# print error and exit
+err()
+{
+    printf "%s[-] ERROR: %s%s\n" "${RED}" "${*}" "${NC}"
+
+    return "${SUCCESS}"
+}
+
+# print error and exit
+cri()
+{
+    printf "%s[-] CRITICAL: %s%s\n" "${RED}" "${*}" "${NC}"
+    
+    exit "${FAILURE}"
+}
+
+
+# usage and help
+usage()
+{
+cat <<EOF
+Usage: ${0} [options] | <misc>
+OPTIONS:
+    -s <pkg>: search package
+    -i <pkg>: download and compile package
+    -u: update system
+    -d: download and update blackarch repository
+EOF
+    return "${SUCCESS}"
+}
+
+
+# leet banner, very important
+banner()
+{
+    printf "%s--==[ blackman by nrz@nullsecurity.net ]==--%s\n" "${YELLOW}" "${NC}"
+
+    return "${SUCCESS}"
+}
+
+
+# check argument count
+check_argc()
+{
+    return "${SUCCESS}"
+}
+
+
+# check if required arguments were selected
+check_args()
+{
+    return "${SUCCESS}"
+}
+
+
+install()
+{
+    if [ -d ~/.blackarch/packages/${1} ]; then
+        cd ~/.blackarch/packages/${1}
+        makepkg -sf 
+        sudo pacman -U *.xz
+        rm -rf .xz pkg/ src/ "${1}*"
+    else
+        cri "Package not found in repository"
+    fi
+
+    return "${SUCCESS}"
+}
+
+update_repo()
+{
+    printf "%s" "${WHITE}"
+
+    if ! [ -d ~/.blackarch ]; then  
+        cd ~/
+        git clone "${REPO}" ~/.blackarch 
+    else
+        cd ~/.blackarch
+        git pull
+    fi
+    
+    printf "%s" "${NC}"
+
+    return "${SUCCESS}"
+}
+
+
+# parse command line options
+get_opts()
+{
+    while getopts s:i:udvVH flags
+    do
+        case ${flags} in
+            s)
+                opt_mode="search"
+                opt_arg=${OPTARG}
+                ;;
+            i)
+                opt_mode="install"
+                opt_arg=${OPTARG}
+                ;;
+            u)
+                opt_mode="update"
+                opt_arg=${OPTARG}
+                ;;
+            d)
+                opt_mode="update_repo"
+                ;;
+            v)
+                VERBOSE="/dev/stdout"
+                ;;
+            V)
+                printf "%s\n" "${VERSION}"
+                exit "${SUCCESS}"
+                ;;
+            H)
+                usage
+                ;;
+            *)
+                err "WTF?! mount /dev/brain"
+                ;;
+        esac
+    done
+
+    return "${SUCCESS}"
+}
+
+
+# controller and program flow
+main()
+{
+    banner
+    check_argc ${*}
+    get_opts ${*}
+    check_args ${*}
+    
+    case "${opt_mode}" in
+        "update_repo")
+            update_repo
+            ;;
+        "install")
+            install "${opt_arg}"
+            ;;
+        *)
+            usage
+            ;;
+    esac
+    return "${SUCCESS}"
+}
+
+
+# program start
+main ${*}
+
+# EOF
