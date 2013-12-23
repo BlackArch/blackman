@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ################################################################################
 #                ____                     _ __                                 #
 #     ___  __ __/ / /__ ___ ______ ______(_) /___ __                           #
@@ -24,7 +24,7 @@
 
 
 # blackman version
-VERSION="blackman v0.1"
+VERSION="blackman v0.2"
 
 # url blackarch repository
 REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
@@ -36,6 +36,9 @@ META="${LOCAL_REPO}/meta"
 
 # world file to follow pkg installed
 WORLD="${LOCAL_REPO}/meta/world"
+
+# groups file
+GROUPS_FILE="${LOCAL_REPO}/docs/misc/groups.lst"
 
 # blackarch packages location
 REPO_PKGS="${LOCAL_REPO}/packages"
@@ -95,14 +98,27 @@ cri()
 # usage and help
 usage()
 {
-cat <<EOF
-Usage: ${0} [options] | <misc>
+    printf "%s" "${WHITE}"
+    
+    cat <<EOF
+Usage: ${0##*/} [options] | <misc>
+
 OPTIONS:
+
+    PACKAGES:
     -s <pkg>: search package
     -i <pkg>: download and compile package
+    -g <group>: install all packages inside a blackarch group
+
+    REPOSITORY:
+    -l: list blackarch groups
     -u: update system
-    -d: download and update blackarch repository
+    -d: update blackarch repository
+
 EOF
+    
+    printf "%s" "${NC}"
+    
     return "${SUCCESS}"
 }
 
@@ -154,14 +170,14 @@ search()
 {
     pkg=$1
     
-    find "${REPO_PKGS}/" -name "*${pkg}*" | while read -r; do
+    find "${REPO_PKGS}/" -name "*${pkg}*" -type d | while read -r; do
         wprintf "[+] %s" "${REPLY##*/}"
     done
 
     return "${SUCCESS}"
 }
       
-install()
+install_pkg()
 {
     pkg=$1
     if [ -d "${REPO_PKGS}/${pkg}" ]; then
@@ -174,8 +190,8 @@ install()
         fi
 
         [ "${?}" == "1" ] && cri "Something wrong with makepkg"
-        sudo pacman -U *.xz
-
+        sudo pacman -U *.xz --noconfirm
+        
         # cleaning up
         # TODO: get the file that PKGBUILD download for rm
         rm -rf *.xz pkg/ src/ "${pkg}*"
@@ -186,6 +202,31 @@ install()
     fi
 
     return "${SUCCESS}"
+}
+
+install_group()
+{
+    # TODO: get count of packages - ask if install all
+    group=$1
+
+    if grep -q "^$group$" "${GROUPS_FILE}"; then
+        grep -lr "$group" "${REPO_PKGS}" | while read -r; do
+            # TODO: nicer?
+            rm_file=$(printf "%s" "${REPLY}"|sed 's/\/PKGBUILD//')
+            install_pkg "${rm_file##*/}" 
+        done
+    else
+        cri "Group does not exist"
+    fi
+
+    return "${SUCCESS}"
+}
+
+list_groups()
+{
+    while read -r; do
+        wprintf "[+] %s" "${REPLY}"
+    done < "${GROUPS_FILE}"
 }
 
 update_repo()
@@ -203,7 +244,7 @@ update_repo()
 # parse command line options
 get_opts()
 {
-    while getopts s:i:udvVH flags
+    while getopts s:i:g:uldvVH flags
     do
         case ${flags} in
             s)
@@ -211,8 +252,15 @@ get_opts()
                 opt_arg=${OPTARG}
                 ;;
             i)
-                opt_mode="install"
+                opt_mode="install_pkg"
                 opt_arg=${OPTARG}
+                ;;
+            g)
+                opt_mode="install_group"
+                opt_arg=${OPTARG}
+                ;;
+            l)
+                opt_mode="list_groups"
                 ;;
             u)
                 opt_mode="update"
@@ -221,6 +269,7 @@ get_opts()
             d)
                 opt_mode="update_repo"
                 ;;
+            
             v)
                 VERBOSE="/dev/stdout"
                 ;;
@@ -254,11 +303,17 @@ main()
         "search")
             search "${opt_arg}"
             ;;
-        "install")
-            install "${opt_arg}"
+        "install_pkg")
+            install_pkg "${opt_arg}"
+            ;;
+        "install_group")
+            install_group "${opt_arg}"
             ;;
         "update_repo")
             update_repo
+            ;;
+        "list_groups")
+            list_groups
             ;;
         *)
             usage
