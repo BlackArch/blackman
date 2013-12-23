@@ -124,6 +124,7 @@ install()
     if [ -d ~/.blackarch/packages/${1} ]; then
         cd ~/.blackarch/packages/${1}
         makepkg -sf 
+        [ "${?}" == "1" ] && cri "Something wrong with makepkg"
         sudo pacman -U *.xz
         rm -rf .xz pkg/ src/ "${1}*"
     else
