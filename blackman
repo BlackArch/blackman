@@ -43,6 +43,9 @@ GROUPS_FILE="${LOCAL_REPO}/docs/misc/groups.lst"
 # blackarch packages location
 REPO_PKGS="${LOCAL_REPO}/packages"
 
+# error log
+ERROR_LOG="${LOCAL_REPO}/meta/errors"
+
 # true / false
 FALSE="0"
 TRUE="1"
@@ -63,7 +66,7 @@ NC="$(tput sgr0)" # No Color
 
 
 wprintf() {
-    fmt=$1
+    fmt=${1}
     shift
     printf "%s${fmt}%s\n" "${WHITE}" "$@" "${NC}"
 
@@ -73,7 +76,9 @@ wprintf() {
 # print warning
 warn()
 {
-    printf "%s[!] WARNING: %s%s\n" "${RED}" "${*}" "${NC}"
+    fmt=${1}
+    shift
+    printf "%s[!] WARNING: ${fmt}%s\n" "${RED}" "${@}" "${NC}"
 
     return "${SUCCESS}"
 }
@@ -81,7 +86,10 @@ warn()
 # print error and exit
 err()
 {
-    printf "%s[-] ERROR: %s%s\n" "${RED}" "${*}" "${NC}"
+    fmt=${1}
+    shift
+    printf "[-] ERROR: ${fmt}\n" "${@}" >> "${ERROR_LOG}"
+    printf "%s[-] ERROR: ${fmt}%s\n" "${RED}" "${@}" "${NC}"
 
     return "${SUCCESS}"
 }
@@ -89,7 +97,10 @@ err()
 # print error and exit
 cri()
 {
-    printf "%s[-] CRITICAL: %s%s\n" "${RED}" "${*}" "${NC}"
+    fmt=${1}
+    shift
+    printf "[-] CRITICAL: ${fmt}%s\n" "${@}" >> "${ERROR_LOG}"
+    printf "%s[-] CRITICAL: ${fmt}%s\n" "${RED}" "${@}" "${NC}"
     
     exit "${FAILURE}"
 }
@@ -192,7 +203,7 @@ install_pkg()
             makepkg -sf --asroot --noconfirm
         fi
 
-        [ "${?}" == "1" ] && cri "Something wrong with makepkg"
+        [ "${?}" == "1" ] && cri "Something wrong with makepkg: %s" "${pkg}"
         sudo pacman -U *.xz ${pacman_extra}
         
         # cleaning up
@@ -201,7 +212,7 @@ install_pkg()
 
         ! grep -q "${pkg}" "${WORLD}" && printf "%s\n" "${pkg}" >> "${WORLD}"
     else
-        cri "Package not found in repository"
+        cri "Package not found in repository: %s" "${pkg}"
     fi
 
     return "${SUCCESS}"
@@ -220,7 +231,7 @@ install_group()
             install_pkg "${rm_file##*/}" "--noconfirm --needed"
         done
     else
-        cri "Group does not exist"
+        cri "Group %s does not exist" "${group}"
     fi
 
     return "${SUCCESS}"
@@ -228,17 +239,16 @@ install_group()
 
 install_all()
 {
-    while read -r; do
-        wprintf "[+] About to install %s group" "${REPLY}"
-        install_group "${REPLY}"
-    done < "${GROUPS_FILE}"
+    install_group "blackarch"
 
     return "${SUCCESS}"
 }
 
 list_groups()
 {
-    install_group "blackarch"
+    while read -r; do
+        wprintf "[+] %s" "${REPLY}"
+    done < "${GROUPS_FILE}"
 
     return "${SUCCESS}"
 }
