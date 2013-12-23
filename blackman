@@ -109,6 +109,7 @@ OPTIONS:
     -s <pkg>: search package
     -i <pkg>: download and compile package
     -g <group>: install all packages inside a blackarch group
+    -a: install all packages from all groups
 
     REPOSITORY:
     -l: list blackarch groups
@@ -168,7 +169,7 @@ check_init()
 
 search()
 {
-    pkg=$1
+    pkg=${1}
     
     find "${REPO_PKGS}/" -name "*${pkg}*" -type d | while read -r; do
         wprintf "[+] %s" "${REPLY##*/}"
@@ -179,18 +180,20 @@ search()
       
 install_pkg()
 {
-    pkg=$1
+    pkg=${1}
+    pacman_extra=${2-""}
+
     if [ -d "${REPO_PKGS}/${pkg}" ]; then
         cd "${REPO_PKGS}/${pkg}"
 
         if [[ ${UID} -ne 0 ]]; then
-            makepkg -sf
+            makepkg -sf --noconfirm
         else
-            makepkg -sf --asroot
+            makepkg -sf --asroot --noconfirm
         fi
 
         [ "${?}" == "1" ] && cri "Something wrong with makepkg"
-        sudo pacman -U *.xz --noconfirm
+        sudo pacman -U *.xz ${pacman_extra}
         
         # cleaning up
         # TODO: get the file that PKGBUILD download for rm
@@ -213,7 +216,8 @@ install_group()
         grep -lr "$group" "${REPO_PKGS}" | while read -r; do
             # TODO: nicer?
             rm_file=$(printf "%s" "${REPLY}"|sed 's/\/PKGBUILD//')
-            install_pkg "${rm_file##*/}" 
+            wprintf "[+] Installing %s package" "${rm_file##*/}"
+            install_pkg "${rm_file##*/}" "--noconfirm --needed"
         done
     else
         cri "Group does not exist"
@@ -222,11 +226,21 @@ install_group()
     return "${SUCCESS}"
 }
 
-list_groups()
+install_all()
 {
     while read -r; do
-        wprintf "[+] %s" "${REPLY}"
+        wprintf "[+] About to install %s group" "${REPLY}"
+        install_group "${REPLY}"
     done < "${GROUPS_FILE}"
+
+    return "${SUCCESS}"
+}
+
+list_groups()
+{
+    install_group "blackarch"
+
+    return "${SUCCESS}"
 }
 
 update_repo()
@@ -244,7 +258,7 @@ update_repo()
 # parse command line options
 get_opts()
 {
-    while getopts s:i:g:uldvVH flags
+    while getopts s:i:g:auldvVH flags
     do
         case ${flags} in
             s)
@@ -258,6 +272,9 @@ get_opts()
             g)
                 opt_mode="install_group"
                 opt_arg=${OPTARG}
+                ;;
+            a)
+                opt_mode="install_all"
                 ;;
             l)
                 opt_mode="list_groups"
@@ -308,6 +325,9 @@ main()
             ;;
         "install_group")
             install_group "${opt_arg}"
+            ;;
+        "install_all")
+            install_all
             ;;
         "update_repo")
             update_repo
