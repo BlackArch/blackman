@@ -30,6 +30,7 @@ VERSION="blackman v0.2"
 # url blackarch repository
 REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
 
+# copy of the blackarch repository
 LOCAL_REPO="${HOME}/.blackarch"
 
 # meta directory for metadata files
@@ -46,6 +47,9 @@ REPO_PKGS="${LOCAL_REPO}/packages"
 
 # error log
 ERROR_LOG="${LOCAL_REPO}/meta/errors"
+
+# temporal directory for install packages
+TMP_DIR_INSTALL="/tmp"
 
 # true / false
 FALSE="0"
@@ -194,9 +198,11 @@ install_pkg()
 {
     pkg=${1}
     pacman_extra=${2-""}
+    #pwd_current=$(pwd)
 
-    if [ -d "${REPO_PKGS}/${pkg}" ]; then
-        cd "${REPO_PKGS}/${pkg}"
+    if [ -d "${REPO_PKGS}/${pkg}" ]; then	
+	cp -R "${REPO_PKGS}/${pkg}" "${TMP_DIR_INSTALL}"
+	cd "${TMP_DIR_INSTALL}/${pkg}"
 
         if [[ ${UID} -ne 0 ]]; then
             makepkg -sf --noconfirm
@@ -208,9 +214,9 @@ install_pkg()
         sudo pacman -U *.xz ${pacman_extra}
         
         # cleaning up
-        # TODO: get the file that PKGBUILD download for rm
-        rm -rf *.xz pkg/ src/ "${pkg}*"
-
+	#cd "${pwd_current}"
+	rm -rf "${TMP_DIR_INSTALL}/${pkg}"
+	
         ! grep -q "${pkg}" "${WORLD}" && printf "%s\n" "${pkg}" >> "${WORLD}"
     else
         cri "Package not found in repository: %s" "${pkg}"
