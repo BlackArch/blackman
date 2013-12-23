@@ -208,13 +208,12 @@ main()
     check_args ${*}
     
     case "${opt_mode}" in
-        "update_repo")
-            check_repo_copy
-            update_repo
-            ;;
         "install")
             check_repo_copy
             install "${opt_arg}"
+            ;;
+        "update_repo")
+            update_repo
             ;;
         *)
             usage
