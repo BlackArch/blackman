@@ -1,0 +1,8 @@
+DEPENDENCIES 
+
+00:48 <@paraxor> does it build dependencies within our repo?
+00:48 <@paraxor> say X depends on Y and you install X
+00:48 <@paraxor> where Y is in our repo
+
+SEARCH
+  - Search by group

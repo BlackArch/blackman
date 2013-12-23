@@ -200,6 +200,12 @@ update_repo()
     return "${SUCCESS}"
 }
 
+check_repo_copy()
+{
+    [ ! -d ~/.blackarch ] && cri "BlackArch Repository not found - make $0 -d first"
+
+    return "${SUCCESS}"
+}
 
 # parse command line options
 get_opts()
@@ -252,14 +258,21 @@ main()
     check_init 
 
     case "${opt_mode}" in
+<<<<<<< HEAD
         "search")
             search "${opt_arg}"
             ;;
         "update_repo")
             update_repo
             ;;
+=======
+>>>>>>> 3d849f8528cb7dc7d2f8dedb7238729170a106a7
         "install")
+            check_repo_copy
             install "${opt_arg}"
+            ;;
+        "update_repo")
+            update_repo
             ;;
         *)
             usage
