@@ -27,13 +27,18 @@
 VERSION="blackman v0.1"
 
 # url blackarch repository
-REPO="https://github.com/BlackArch/blackarch.git"
+REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
+
+LOCAL_REPO="${HOME}/.blackarch"
 
 # meta directory for metadata files
-META="${HOME}/.blackarch/meta"
+META="${LOCAL_REPO}/meta"
 
 # world file to follow pkg installed
-WORLD="${HOME}/.blackarch/meta/world"
+WORLD="${LOCAL_REPO}/meta/world"
+
+# blackarch packages location
+REPO_PKGS="${LOCAL_REPO}/packages"
 
 # true / false
 FALSE="0"
@@ -129,14 +134,14 @@ check_init()
 {
     printf "%s" "${WHITE}"
     # check blackarch repository
-    if ! [ -d ~/.blackarch ]; then  
+    if ! [ -d "${LOCAL_REPO}" ]; then  
         printf "[+] First Blackman Init - Setting up... \n"
-        cd ~/
-        git clone "${REPO}" ~/.blackarch 
+        cd "${HOME}"
+        git clone "${REMOTE_REPO}" "${LOCAL_REPO}"
     fi
     
-    if ! [ -d ~/.blackarch/meta ]; then
-        mkdir -p ~/.blackarch/meta
+    if ! [ -d "${META}" ]; then
+        mkdir -p "${META}"
         printf "[+] Creating meta directory...\n"
     fi
     printf "%s" "${NC}"
@@ -144,11 +149,23 @@ check_init()
     return "${SUCCESS}"
 }
 
+
+search()
+{
+    pkg=$1
+    
+    find "${REPO_PKGS}/" -name "*${pkg}*" | while read -r; do
+        wprintf "[+] %s" "${REPLY##*/}"
+    done
+
+    return "${SUCCESS}"
+}
+      
 install()
 {
     pkg=$1
-    if [ -d ~/.blackarch/packages/${pkg} ]; then
-        cd ~/.blackarch/packages/${pkg}
+    if [ -d "${REPO_PKGS}/${pkg}" ]; then
+        cd "${REPO_PKGS}/${pkg}"
 
         if [[ ${UID} -ne 0 ]]; then
             makepkg -sf
@@ -175,7 +192,7 @@ update_repo()
 {
     printf "%s" "${WHITE}"
     
-    cd ~/.blackarch
+    cd "${LOCAL_REPO}"
     git pull
     
     printf "%s" "${NC}"
@@ -235,6 +252,9 @@ main()
     check_init 
 
     case "${opt_mode}" in
+        "search")
+            search "${opt_arg}"
+            ;;
         "update_repo")
             update_repo
             ;;
