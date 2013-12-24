@@ -125,7 +125,7 @@ OPTIONS:
 
     REPOSITORY:
     -l: list blackarch groups
-    -u: update system
+    -u: update system [not implemented yet - v0.3]
     -d: update blackarch repository
 
 EOF
@@ -297,13 +297,12 @@ get_opts()
                 opt_mode="list_groups"
                 ;;
             u)
-                opt_mode="update"
+                opt_mode="update_system"
                 opt_arg=${OPTARG}
                 ;;
             d)
                 opt_mode="update_repo"
                 ;;
-            
             v)
                 VERBOSE="/dev/stdout"
                 ;;
