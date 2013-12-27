@@ -162,6 +162,15 @@ check_args()
     return "${SUCCESS}"
 }
 
+check_env()
+{
+    if [ -f /var/lib/pacman/db.lck ]; then
+        cri "Pacman locked - rm /var/lib/pacman/db.lck"
+    fi
+
+    return "${SUCCESS}"
+}
+
 # check if its first time for blackman and set everything up
 check_init()
 {
@@ -214,8 +223,8 @@ install_pkg()
         sudo pacman -U *.xz ${pacman_extra}
         
         # cleaning up
-	#cd "${pwd_current}"
-	rm -rf "${TMP_DIR_INSTALL}/${pkg}"
+	    #cd "${pwd_current}"
+	    rm -rf "${TMP_DIR_INSTALL}/${pkg}"
 	
         ! grep -q "${pkg}" "${WORLD}" && printf "%s\n" "${pkg}" >> "${WORLD}"
     else
@@ -336,6 +345,7 @@ main()
     check_argc ${*}
     get_opts ${*}
     check_args ${*}
+    check_env
     check_init 
 
     case "${opt_mode}" in
