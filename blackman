@@ -210,7 +210,7 @@ install_pkg()
             makepkg -sf --asroot --noconfirm
         fi
 
-        [ "${?}" == "1" ] && cri "Something wrong with makepkg: %s" "${pkg}"
+        [ "${?}" != "0" ] && cri "Something wrong with makepkg: %s" "${pkg}"
         sudo pacman -U *.xz ${pacman_extra}
         
         # cleaning up
