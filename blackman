@@ -239,6 +239,8 @@ install_group()
     # TODO: get count of packages - ask if install all
     group=$1
 
+    wprintf "[+] Installing %s group" "${group}"
+
     if grep -q "^$group$" "${GROUPS_FILE}"; then
         grep -lr "$group" "${REPO_PKGS}" | while read -r; do
             # TODO: nicer?
