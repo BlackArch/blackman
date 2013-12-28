@@ -169,7 +169,12 @@ check_env()
     fi
 
     command -v strip >/dev/null 2>&1 ||
+        err "Blackman needs binutils to work" ||
         pacman -S binutils
+
+    command -v make >/dev/null 2>&1 ||
+        err "Blackman needs base-dev to work" ||
+        pacman -S base-dev
 
     return "${SUCCESS}"
 }
