@@ -168,6 +168,9 @@ check_env()
         cri "Pacman locked - rm /var/lib/pacman/db.lck"
     fi
 
+    command -v strip >/dev/null 2>&1 ||
+        pacman -S binutils
+
     return "${SUCCESS}"
 }
 
