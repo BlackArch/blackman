@@ -173,7 +173,7 @@ check_env()
         pacman -S binutils
 
     command -v make >/dev/null 2>&1 ||
-        err "Blackman needs base-dev to work" ||
+        err "Blackman needs base-devel to work" ||
         pacman -S base-devel
 
     return "${SUCCESS}"
@@ -355,8 +355,8 @@ main()
     check_argc ${*}
     get_opts ${*}
     check_args ${*}
-    check_env
     check_init 
+    check_env
 
     case "${opt_mode}" in
         "search")
