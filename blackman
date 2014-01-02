@@ -222,10 +222,10 @@ check_pkg()
 
     if grep -q "${pkg}" "${WORLD}"; then
         wprintf "[+] Package %s already installed" "${pkg}"
-        ver_PKGBULD=$(grep "pkgver=" "${REPO_PKGS}/${pkg}/PKGBUILD" |sed 's/pkgver=//')
+        ver_PKGBUILD=$(grep "pkgver=" "${REPO_PKGS}/${pkg}/PKGBUILD" |sed 's/pkgver=//')
         ver_installed=$(pacman -Qi "${pkg}"|grep "Version"|cut -d":" -f2|sed 's/ //g')
-        if [ "${ver_PKGBUILD}" == "${ver_intalled}" ]; then
-            wprintf "[+] Package %s up to date - set -f if you want to install it anyway"
+        if [ "${ver_PKGBUILD}" == "${ver_installed}" ]; then
+            wprintf "[+] Package %s up to date %s" "${FORCE-- set -f if you want to install it anyway}"
             return "${SUCCESS}"
         else
             wprintf "[+] Installing update version for package %s" "${pkg}"
