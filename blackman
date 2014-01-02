@@ -56,8 +56,8 @@ FALSE="0"
 TRUE="1"
 
 # return codes
-SUCCESS="1337"
-FAILURE="31337"
+SUCCESS="0"
+FAILURE="1"
 
 # verbose mode - default: quiet
 VERBOSE="/dev/null"
@@ -134,6 +134,7 @@ OPTIONS:
 
     FLAGS:
     -f: force
+
 EOF
 
     printf "%s" "${NC}"
@@ -246,7 +247,7 @@ install_pkg()
 
     if [ -d "${REPO_PKGS}/${pkg}" ]; then
         # check if pkg already installed with same version from repository
-        if [ $(check_pkg "${pkg}") == "${SUCCESS}" ] && [ -z "${FORCE}" ]; then
+        if check_pkg "${pkg}" && [ -z "${FORCE}" ]; then
             err "Package already installed and up to date"
             return "${SUCCESS}"
         fi
