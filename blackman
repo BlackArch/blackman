@@ -263,8 +263,9 @@ install_pkg()
         if grep -q "depends" PKGBUILD; then
             grep "depends" PKGBUILD | sed "s/depends=(//;s/)//;s/'//g;s/ /\n/g"|
                 while read -r; do
-                    [ -d "${REPO_PKGS}/${REPLY}" ] && install_pkg "${REPLY}" \
-                         "--noconfirm --needed"
+                    if [ -d "${REPO_PKGS}/${REPLY}" ]; then
+                        wprintf "[+] BlackArch dependencies detected - Installing..."
+                        install_pkg "${REPLY}" "--noconfirm --needed"
                 done
         fi
 
