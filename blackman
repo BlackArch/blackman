@@ -179,6 +179,11 @@ check_env()
         err "Blackman needs base-devel to work" ||
         pacman -S base-devel
 
+    command -v svn >/dev/null 2>&1 ||
+        err "Blackman needs Subversion to work" ||
+        pacman -S subversion
+
+
     return "${SUCCESS}"
 }
 
