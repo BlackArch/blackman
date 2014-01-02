@@ -248,7 +248,6 @@ install_pkg()
     if [ -d "${REPO_PKGS}/${pkg}" ]; then
         # check if pkg already installed with same version from repository
         if check_pkg "${pkg}" && [ -z "${FORCE}" ]; then
-            err "Package already installed and up to date"
             return "${SUCCESS}"
         fi
 
