@@ -106,7 +106,7 @@ cri()
     shift
     printf "[-] CRITICAL: ${fmt}%s\n" "${@}" >> "${ERROR_LOG}"
     printf "%s[-] CRITICAL: ${fmt}%s\n" "${RED}" "${@}" "${NC}"
-    
+
     exit "${FAILURE}"
 }
 
@@ -115,7 +115,7 @@ cri()
 usage()
 {
     printf "%s" "${WHITE}"
-    
+
     cat <<EOF
 Usage: ${0##*/} [options] | <misc>
 
@@ -133,9 +133,9 @@ OPTIONS:
     -d: update blackarch repository
 
 EOF
-    
+
     printf "%s" "${NC}"
-    
+
     return "${SUCCESS}"
 }
 
@@ -184,12 +184,12 @@ check_init()
 {
     printf "%s" "${WHITE}"
     # check blackarch repository
-    if ! [ -d "${LOCAL_REPO}" ]; then  
+    if ! [ -d "${LOCAL_REPO}" ]; then
         printf "[+] First Blackman Init - Setting up... \n"
         cd "${HOME}"
         git clone "${REMOTE_REPO}" "${LOCAL_REPO}"
     fi
-    
+
     if ! [ -d "${META}" ]; then
         mkdir -p "${META}"
         printf "[+] Creating meta directory...\n"
@@ -203,23 +203,30 @@ check_init()
 search()
 {
     pkg=${1}
-    
+
     find "${REPO_PKGS}/" -name "*${pkg}*" -type d | while read -r; do
         wprintf "[+] %s" "${REPLY##*/}"
     done
 
     return "${SUCCESS}"
 }
-      
+
 install_pkg()
 {
     pkg=${1}
     pacman_extra=${2-""}
-    #pwd_current=$(pwd)
 
-    if [ -d "${REPO_PKGS}/${pkg}" ]; then	
+    if [ -d "${REPO_PKGS}/${pkg}" ]; then
 	cp -R "${REPO_PKGS}/${pkg}" "${TMP_DIR_INSTALL}"
 	cd "${TMP_DIR_INSTALL}/${pkg}"
+
+        # check and resolve dependencies with blackarch packages
+        if grep -q "depends" PKGBUILD; then
+            grep "depends" PKGBUILD | sed "s/depends=(//;s/)//;s/'//g;s/ /\n/g"|
+                while read -r; do
+                    [ -d "${REPO_PKGS}/${REPLY}" ] && install_pkg "${REPLY}"
+                done
+        fi
 
         if [[ ${UID} -ne 0 ]]; then
             makepkg -sf --noconfirm
@@ -229,11 +236,10 @@ install_pkg()
 
         [ "${?}" != "0" ] && cri "Something wrong with makepkg: %s" "${pkg}"
         sudo pacman -U *.xz ${pacman_extra}
-        
+
         # cleaning up
-	    #cd "${pwd_current}"
 	    rm -rf "${TMP_DIR_INSTALL}/${pkg}"
-	
+
         ! grep -q "${pkg}" "${WORLD}" && printf "%s\n" "${pkg}" >> "${WORLD}"
     else
         cri "Package not found in repository: %s" "${pkg}"
@@ -281,17 +287,17 @@ list_groups()
 
 update_system()
 {
-    #check date 
+    #check date
     return "${SUCCESS}"
 }
 
 update_repo()
 {
     printf "%s" "${WHITE}"
-    
+
     cd "${LOCAL_REPO}"
     git pull
-    
+
     printf "%s" "${NC}"
 
     return "${SUCCESS}"
@@ -355,7 +361,7 @@ main()
     check_argc ${*}
     get_opts ${*}
     check_args ${*}
-    check_init 
+    check_init
     check_env
 
     case "${opt_mode}" in
