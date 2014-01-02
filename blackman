@@ -266,6 +266,7 @@ install_pkg()
                     if [ -d "${REPO_PKGS}/${REPLY}" ]; then
                         wprintf "[+] BlackArch dependencies detected - Installing..."
                         install_pkg "${REPLY}" "--noconfirm --needed"
+                    fi
                 done
         fi
 
