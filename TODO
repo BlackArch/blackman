@@ -5,8 +5,9 @@
 00:48 <@paraxor> where Y is in our repo
 
 VERSION CHECK
- - pacman -Qi - parse version if package installed -> system update
-with world and check if already installed that pkg version
+ - pacman -Qi - parse version if package installed ->
+    system update with world and
+    [DONE] check if already installed that pkg version
 
 SEARCH
   - Search by group

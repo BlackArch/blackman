@@ -132,6 +132,8 @@ OPTIONS:
     -u: update system [not implemented yet - v0.3]
     -d: update blackarch repository
 
+    FLAGS:
+    -f: force
 EOF
 
     printf "%s" "${NC}"
@@ -211,14 +213,46 @@ search()
     return "${SUCCESS}"
 }
 
+# check if package is already installed and up to date
+# return SUCCESS if already installed and FAILURE otherwise
+check_pkg()
+{
+    pkg=${1}
+
+    if grep -q "${pkg}" "${WORLD}"; then
+        wprintf "[+] Package %s already installed" "${pkg}"
+        ver_PKGBULD=$(grep "pkgver=" "${REPO_PKGS}/${pkg}/PKGBUILD" |sed 's/pkgver=//')
+        ver_installed=$(pacman -Qi "${pkg}"|grep "Version"|cut -d":" -f2|sed 's/ //g')
+        if [ "${ver_PKGBUILD}" == "${ver_intalled}" ]; then
+            wprintf "[+] Package %s up to date - set -f if you want to install it anyway"
+            return "${SUCCESS}"
+        else
+            wprintf "[+] Installing update version for package %s" "${pkg}"
+            wprintf "[+] Version update from %s -> %s" "${ver_installed}" "${ver_PKGBUILD}"
+            return "${FAILURE}"
+        fi
+    fi
+
+    # pkg isnt inside world file - not installed
+    return "${FAILURE}"
+}
+
+
 install_pkg()
 {
     pkg=${1}
     pacman_extra=${2-""}
 
+
     if [ -d "${REPO_PKGS}/${pkg}" ]; then
-	cp -R "${REPO_PKGS}/${pkg}" "${TMP_DIR_INSTALL}"
-	cd "${TMP_DIR_INSTALL}/${pkg}"
+        # check if pkg already installed with same version from repository
+        if [ $(check_pkg "${pkg}") == "${SUCCESS}" ] && [ -z "${FORCE}" ]; then
+            err "Package already installed and up to date"
+            return "${SUCCESS}"
+        fi
+
+	    cp -R "${REPO_PKGS}/${pkg}" "${TMP_DIR_INSTALL}"
+	    cd "${TMP_DIR_INSTALL}/${pkg}"
 
         # check and resolve dependencies with blackarch packages
         if grep -q "depends" PKGBUILD; then
@@ -307,7 +341,7 @@ update_repo()
 # parse command line options
 get_opts()
 {
-    while getopts s:i:g:auldvVH flags
+    while getopts s:i:g:auldfvVH flags
     do
         case ${flags} in
             s)
@@ -334,6 +368,9 @@ get_opts()
                 ;;
             d)
                 opt_mode="update_repo"
+                ;;
+            f)
+                FORCE="true"
                 ;;
             v)
                 VERBOSE="/dev/stdout"
