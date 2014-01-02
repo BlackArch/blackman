@@ -96,7 +96,7 @@ err()
     printf "[-] ERROR: ${fmt}\n" "${@}" >> "${ERROR_LOG}"
     printf "%s[-] ERROR: ${fmt}%s\n" "${RED}" "${@}" "${NC}"
 
-    return "${SUCCESS}"
+    return "${FAILURE}"
 }
 
 # print error and exit
