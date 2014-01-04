@@ -339,7 +339,8 @@ update_repo()
     printf "%s" "${WHITE}"
 
     cd "${LOCAL_REPO}"
-    git pull
+    git fetch --all
+    git reset --hard origin/master
 
     printf "%s" "${NC}"
 
