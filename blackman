@@ -25,7 +25,7 @@
 
 
 # blackman version
-VERSION="blackman v0.3"
+VERSION="blackman v0.4"
 
 # url blackarch repository
 REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
@@ -67,6 +67,7 @@ WHITE="$(tput bold ; tput setaf 7)"
 GREEN="$(tput setaf 2)"
 RED="$(tput bold; tput setaf 1)"
 YELLOW="$(tput bold ; tput setaf 3)"
+GREY="$(tput bold ; tput setaf 0)"
 NC="$(tput sgr0)" # No Color
 
 
@@ -77,6 +78,15 @@ wprintf() {
 
     return "${SUCCESS}"
 }
+
+gprintf() {
+    fmt=${1}
+    shift
+    printf "%s${fmt}%s\n" "${GREY}" "$@" "${NC}"
+
+    return "${SUCCESS}"
+}
+
 
 # print warning
 warn()
@@ -129,7 +139,8 @@ OPTIONS:
 
     REPOSITORY:
     -l: list blackarch groups
-    -u: update system [not implemented yet - v0.3]
+    -p <group>: list packages from group
+    -u: update system [not implemented yet - v0.4]
     -d: update blackarch repository
 
     FLAGS:
@@ -296,6 +307,9 @@ install_group()
     # TODO: get count of packages - ask if install all
     group=$1
 
+    # fix blackarch- prefix
+    ! printf "%s" "${group}" | grep "blackarch-" && group="blackarch-${group}"
+
     wprintf "[+] Installing %s group" "${group}"
 
     if grep -q "^$group$" "${GROUPS_FILE}"; then
@@ -328,6 +342,26 @@ list_groups()
     return "${SUCCESS}"
 }
 
+list_pkgs_from_group()
+{
+    group=$1
+
+    # fix blackarch- prefix
+    ! printf "%s" "${group}" | grep "blackarch-" && group="blackarch-${group}"
+
+    if grep -q "${group}" "${GROUPS_FILE}"; then
+        grep "${group}" -rl "${REPO_PKGS}"|grep PKGBUILD| while read -r; do 
+            path_no_pkgbuild=$(printf "%s" "${REPLY}"| sed 's/\/PKGBUILD//')
+            wprintf "[+] %s" "${path_no_pkgbuild##*/}"
+            gprintf "\t%s" "$(cat "${REPLY}"|grep "pkgdesc"|sed 's/pkgdesc=//;s/"//g')"
+        done
+    else
+        wprintf "[-] Group %s not found" "${group}"
+    fi
+    
+    return "${SUCCESS}"
+}
+
 update_system()
 {
     #check date
@@ -350,7 +384,7 @@ update_repo()
 # parse command line options
 get_opts()
 {
-    while getopts s:i:g:auldfvVH flags
+    while getopts s:i:g:aulp:dfvVH flags
     do
         case ${flags} in
             s)
@@ -370,6 +404,10 @@ get_opts()
                 ;;
             l)
                 opt_mode="list_groups"
+                ;;
+            p)  
+                opt_mode="list_pkgs_from_group"
+                opt_arg=${OPTARG}
                 ;;
             u)
                 opt_mode="update_system"
@@ -429,6 +467,9 @@ main()
             ;;
         "list_groups")
             list_groups
+            ;;
+        "list_pkgs_from_group")
+            list_pkgs_from_group "${opt_arg}"
             ;;
         *)
             usage
