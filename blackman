@@ -362,7 +362,7 @@ list_pkgs_from_group()
             gprintf "\t%s" "$(cat "${REPLY}"|grep "pkgdesc"|sed 's/pkgdesc=//;s/"//g')"
         done
     else
-        wprintf "[-] Group %s not found" "${group}"
+        cri "Group %s not found" "${group}"
     fi
 
     [ "${found}" == "false" ] && err "Not packets found for group \'%s\'" "${group}"
