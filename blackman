@@ -345,19 +345,23 @@ list_groups()
 list_pkgs_from_group()
 {
     group=$1
+    found="false"
 
     # fix blackarch- prefix
-    ! printf "%s" "${group}" | grep "blackarch-" && group="blackarch-${group}"
+    ! printf "%s" "${group}" | grep -q "blackarch-" && group="blackarch-${group}"
 
     if grep -q "${group}" "${GROUPS_FILE}"; then
         grep "${group}" -rl "${REPO_PKGS}"|grep PKGBUILD| while read -r; do 
             path_no_pkgbuild=$(printf "%s" "${REPLY}"| sed 's/\/PKGBUILD//')
             wprintf "[+] %s" "${path_no_pkgbuild##*/}"
             gprintf "\t%s" "$(cat "${REPLY}"|grep "pkgdesc"|sed 's/pkgdesc=//;s/"//g')"
+            found="true"
         done
     else
         wprintf "[-] Group %s not found" "${group}"
     fi
+
+    [ "${found}" == "false" ] && err "Not packets found for group %s" "${group}"
     
     return "${SUCCESS}"
 }
