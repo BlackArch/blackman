@@ -222,10 +222,14 @@ check_init()
 search()
 {
     pkg=${1}
+    found="false"
 
     find "${REPO_PKGS}/" -name "*${pkg}*" -type d | while read -r; do
+        found="true"
         wprintf "[+] %s" "${REPLY##*/}"
     done
+
+    [ "${found}" == "false" ] && err "Package %s not found" "${pkg}"
 
     return "${SUCCESS}"
 }
@@ -352,10 +356,10 @@ list_pkgs_from_group()
 
     if grep -q "${group}" "${GROUPS_FILE}"; then
         grep "${group}" -rl "${REPO_PKGS}"|grep PKGBUILD| while read -r; do 
+            found="true"
             path_no_pkgbuild=$(printf "%s" "${REPLY}"| sed 's/\/PKGBUILD//')
             wprintf "[+] %s" "${path_no_pkgbuild##*/}"
             gprintf "\t%s" "$(cat "${REPLY}"|grep "pkgdesc"|sed 's/pkgdesc=//;s/"//g')"
-            found="true"
         done
     else
         wprintf "[-] Group %s not found" "${group}"
