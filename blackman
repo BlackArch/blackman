@@ -229,7 +229,7 @@ search()
         wprintf "[+] %s" "${REPLY##*/}"
     done
 
-    [ "${found}" == "false" ] && err "Package %s not found" "${pkg}"
+    [ "${found}" == "false" ] && err "Package \'%s\' not found" "${pkg}"
 
     return "${SUCCESS}"
 }
@@ -300,7 +300,7 @@ install_pkg()
 
         ! grep -q "${pkg}" "${WORLD}" && printf "%s\n" "${pkg}" >> "${WORLD}"
     else
-        cri "Package not found in repository: %s" "${pkg}"
+        cri "Package not found in repository \'%s\'" "${pkg}"
     fi
 
     return "${SUCCESS}"
@@ -324,7 +324,7 @@ install_group()
             install_pkg "${rm_file##*/}" "--noconfirm --needed"
         done
     else
-        cri "Group %s does not exist" "${group}"
+        cri "Group \'%s\' does not exist" "${group}"
     fi
 
     return "${SUCCESS}"
@@ -365,7 +365,7 @@ list_pkgs_from_group()
         wprintf "[-] Group %s not found" "${group}"
     fi
 
-    [ "${found}" == "false" ] && err "Not packets found for group %s" "${group}"
+    [ "${found}" == "false" ] && err "Not packets found for group \'%s\'" "${group}"
     
     return "${SUCCESS}"
 }
