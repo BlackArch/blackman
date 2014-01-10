@@ -184,16 +184,27 @@ check_env()
 
     command -v strip >/dev/null 2>&1 ||
         err "Blackman needs binutils to work" ||
-        pacman -S binutils
+        if [ "$EUID" != "0" ]; then
+            sudo pacman -S binutils
+        else
+            pacman -S binutils
+        fi
 
     command -v make >/dev/null 2>&1 ||
         err "Blackman needs base-devel to work" ||
-        pacman -S base-devel
+        if [ "$EUID" != "0" ]; then
+            sudo pacman -S base-devel
+        else
+            pacman -S base-devl
+        fi
 
     command -v svn >/dev/null 2>&1 ||
         err "Blackman needs Subversion to work" ||
-        pacman -S subversion
-
+        if [ "$EUID" != "0" ]; then
+            sudo pacman -S subversion
+        else
+            pacman -S subversion
+        fi
 
     return "${SUCCESS}"
 }
@@ -355,7 +366,7 @@ list_pkgs_from_group()
     ! printf "%s" "${group}" | grep -q "blackarch-" && group="blackarch-${group}"
 
     if grep -q "${group}" "${GROUPS_FILE}"; then
-        grep "${group}" -rl "${REPO_PKGS}"|grep PKGBUILD| while read -r; do 
+        grep "${group}" -rl "${REPO_PKGS}"|grep PKGBUILD| while read -r; do
             found="true"
             path_no_pkgbuild=$(printf "%s" "${REPLY}"| sed 's/\/PKGBUILD//')
             wprintf "[+] %s" "${path_no_pkgbuild##*/}"
@@ -366,7 +377,7 @@ list_pkgs_from_group()
     fi
 
     [ "${found}" == "false" ] && err "Not packets found for group \'%s\'" "${group}"
-    
+
     return "${SUCCESS}"
 }
 
@@ -413,7 +424,7 @@ get_opts()
             l)
                 opt_mode="list_groups"
                 ;;
-            p)  
+            p)
                 opt_mode="list_pkgs_from_group"
                 opt_arg=${OPTARG}
                 ;;
