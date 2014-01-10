@@ -224,6 +224,9 @@ check_init()
         mkdir -p "${META}"
         printf "[+] Creating meta directory...\n"
     fi
+
+    ! [ -f "${WORLD}" ] && touch "${WORLD}"
+
     printf "%s" "${NC}"
 
     return "${SUCCESS}"
