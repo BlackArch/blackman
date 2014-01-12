@@ -140,7 +140,7 @@ OPTIONS:
     REPOSITORY:
     -l: list blackarch groups
     -p <group>: list packages from group
-    -u: update system [not implemented yet - v0.4]
+    -u: update system [not implemented yet - v0.X]
     -d: update blackarch repository
 
     FLAGS:
