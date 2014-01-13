@@ -195,7 +195,7 @@ check_env()
         if [ "$EUID" != "0" ]; then
             sudo pacman -S base-devel
         else
-            pacman -S base-devl
+            pacman -S base-devel
         fi
 
     command -v svn >/dev/null 2>&1 ||
