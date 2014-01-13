@@ -326,7 +326,7 @@ install_group()
     group=$1
 
     # fix blackarch- prefix
-    ! printf "%s" "${group}" | grep "blackarch-" && group="blackarch-${group}"
+    ! printf "%s" "${group}" | grep -q "blackarch" && group="blackarch-${group}"
 
     wprintf "[+] Installing %s group" "${group}"
 
