@@ -1,12 +1,10 @@
 blackman tool
 -------------
-    - Small package manager which download, compile -if needed- and install
-packages from sources.
+    Small package manager which download, compile -if needed- and install packages from sources.
 
-    - This tool has several goals in mind:
+    This tool has several goals in mind:
         1. It does not depends on repository.
-        2. Be always up to date, since packages builds from
-        the very last PKGBUILD in master BlackArch branch.
+        2. Be always up to date, since packages builds from the very last PKGBUILD in master BlackArch branch.
         3. Download from tool source.
         4. Compile the package.
 
