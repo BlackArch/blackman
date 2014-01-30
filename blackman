@@ -206,6 +206,14 @@ check_env()
             pacman -S subversion --noconfirm
         fi
 
+    command -v git >/dev/null 2>&1 ||
+        err "Blackman needs git to work" ||
+        if [ "$EUID" != "0" ]; then
+            sudo pacman -S git --noconfirm
+        else
+            pacman -S git --noconfirm
+        fi
+
     return "${SUCCESS}"
 }
 
