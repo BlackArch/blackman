@@ -40,7 +40,7 @@ META="${LOCAL_REPO}/meta"
 WORLD="${LOCAL_REPO}/meta/world"
 
 # groups file
-GROUPS_FILE="${LOCAL_REPO}/docs/misc/groups.lst"
+GROUPS_FILE="${LOCAL_REPO}/docs/groups.lst"
 
 # blackarch packages location
 REPO_PKGS="${LOCAL_REPO}/packages"
