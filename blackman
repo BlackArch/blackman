@@ -25,7 +25,7 @@
 
 
 # blackman version
-VERSION="blackman v0.4.2"
+VERSION="blackman v0.5"
 
 # url blackarch repository
 REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
@@ -50,6 +50,13 @@ ERROR_LOG="${LOCAL_REPO}/meta/errors"
 
 # temporal directory for install packages
 TMP_DIR_INSTALL="/tmp"
+
+# directory for sort tools
+if [ "${UID}" == "0" ]; then
+    SORT_TOOLS_DIR="/root/haxx"
+else
+    SORT_TOOLS_DIR="/home/${USER}/haxx"
+fi
 
 # true / false
 FALSE="0"
@@ -143,6 +150,10 @@ OPTIONS:
     -u: update system [not implemented yet - v0.X]
     -d: update blackarch repository
 
+    SORT TOOLS:
+    -h: sort tools into main directory [${SORT_TOOLS_DIR} default]
+    -D <dir>: change default main directory
+
     FLAGS:
     -f: force
 
@@ -223,7 +234,7 @@ check_init()
     printf "%s" "${WHITE}"
     # check blackarch repository
     if ! [ -d "${LOCAL_REPO}" ]; then
-        printf "[+] First Blackman Init - Setting up... \n"
+        printf "[+] First Blackman Init - Setting up... \n\n"
         cd "${HOME}"
         git clone "${REMOTE_REPO}" "${LOCAL_REPO}"
     fi
@@ -244,16 +255,16 @@ check_init()
 search()
 {
     pkg=${1}
-    found="false"
+    found="${FAILURE}"
 
     find "${REPO_PKGS}/" -name "*${pkg}*" -type d | ( while read -r; do
-        found="true"
+        found="${SUCCESS}"
         wprintf "[+] %s" "${REPLY##*/}"
     done
-    [ "${found}" == "false" ] && err "Package \'%s\' not found" "${pkg}" )
+    [ "${found}" == "${FAILURE}" ] && err "Package \'%s\' not found" "${pkg}" )
 
 
-    return "${SUCCESS}"
+    return "${found}"
 }
 
 # check if package is already installed and up to date
@@ -411,10 +422,33 @@ update_repo()
     return "${SUCCESS}"
 }
 
+sort_tools()
+{
+    arg_dir=$1
+
+    [ -n "${arg_dir}" ] && SORT_TOOLS_DIR=${arg_dir}
+
+    ! [ -d "${SORT_TOOLS_DIR}" ] &&
+        wprintf "[+] Creating %s dir for tools\n" "${SORT_TOOLS_DIR}" &&
+        mkdir -p "${SORT_TOOLS_DIR}"
+
+    pacman -Qgg | grep blackarch |
+    while read -r group tool ; do
+        mkdir -p "${SORT_TOOLS_DIR}/${group##*-}"
+        if ! [ -h "${SORT_TOOLS_DIR}/${group##*-}/${tool}" ]; then
+            ln -s "/usr/share/${tool}" "${SORT_TOOLS_DIR}/${group##*-}/"
+            wprintf "[+] %s tool added to %s group" "${tool}" "${group##*-}"
+        fi
+    done
+
+    wprintf "\n[+] Done!"
+
+    return "${SUCCESS}"
+}
 # parse command line options
 get_opts()
 {
-    while getopts s:i:g:aulp:dfvVH flags
+    while getopts s:i:g:aulp:dhD:fvVH flags
     do
         case ${flags} in
             s)
@@ -446,6 +480,12 @@ get_opts()
             d)
                 opt_mode="update_repo"
                 ;;
+            h)
+                opt_mode="sort_tools"
+                ;;
+            D)
+                opt_arg=${OPTARG}
+                ;;
             f)
                 FORCE="true"
                 ;;
@@ -460,7 +500,7 @@ get_opts()
                 usage
                 ;;
             *)
-                err "WTF?! mount /dev/brain"
+                cri "WTF?! mount /dev/brain"
                 ;;
         esac
     done
@@ -500,6 +540,9 @@ main()
             ;;
         "list_pkgs_from_group")
             list_pkgs_from_group "${opt_arg}"
+            ;;
+        "sort_tools")
+            sort_tools "${opt_arg}"
             ;;
         *)
             usage

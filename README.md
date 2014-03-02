@@ -8,7 +8,7 @@ blackman tool
         3. Download from tool source.
         4. Compile the package.
 
-Usage: blackman 
+Usage: blackman
 ---------------
 
 OPTIONS:
@@ -24,6 +24,10 @@ OPTIONS:
     -p <group>: list packages from group
     -u: update system [not implemented yet - v0.X]
     -d: update blackarch repository
+
+    SORT TOOLS:
+    -h: sort tools into main directory [~/haxx default]
+    -D <dir>: change default main directory
 
     FLAGS:
     -f: force
