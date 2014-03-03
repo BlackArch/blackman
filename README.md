@@ -68,11 +68,22 @@ SORT TOOLS EXAMPLE
     [+] wnmap tool added to automation group
     [+] xortool tool added to crypto group
     
+    [..]
+    
     [+] Done!
     
     [ blackarch blackman ]# ls ~/haxx/
-    automation  crypto        fingerprint  networking  webapp
-    blackarch   exploitation  fuzzer       scanner
+    blackarch    forensic       automation   backdoor 
+    binary       bluetooth      audit        cracker   
+    crypto       database       debugger     decompiler   
+    defensive    disassembler   dos          drone   
+    exploitation fingerprint    firmware     forensic   
+    fuzzer       hardware       honeypot     keylogger   
+    malware      misc           mobile       networking   
+    nfc          packer         proxy        recon 
+    reversing    scanner        sniffer      social 
+    spoof        model          tunnel       unpacker 
+    voip         webapp         windows      wireless
     
     [ blackarch haxx ]# tree
     .
