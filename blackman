@@ -260,6 +260,7 @@ search()
     find "${REPO_PKGS}/" -name "*${pkg}*" -type d | ( while read -r; do
         found="${SUCCESS}"
         wprintf "[+] %s" "${REPLY##*/}"
+        gprintf "\t%s" "$(cat "${REPLY}/PKGBUILD"|grep "pkgdesc"|sed 's/pkgdesc=//;s/"//g')"
     done
     [ "${found}" == "${FAILURE}" ] && err "Package \'%s\' not found" "${pkg}" )
 
