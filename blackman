@@ -187,6 +187,24 @@ check_args()
     return "${SUCCESS}"
 }
 
+ask_pkg_install()
+{
+    pkg=${1}
+
+    printf "%s" "${WHITE}"
+
+    printf "[?] About to install %s [Y/n]: " "${pkg}"
+    read a
+    if [ "${a}" == "n" ] || [ "${a}" == "N" ]; then
+        return "${FAILURE}"
+    else
+        return "${SUCCESS}"
+    fi
+
+    printf "%s" "${NC}"
+
+}
+
 check_env()
 {
     if [ -f /var/lib/pacman/db.lck ]; then
@@ -195,34 +213,42 @@ check_env()
 
     command -v strip >/dev/null 2>&1 ||
         err "Blackman needs binutils to work" ||
-        if [ "$EUID" != "0" ]; then
-            sudo pacman -S binutils --noconfirm
-        else
-            pacman -S binutils --noconfirm
+        if ask_pkg_install "binutils"; then
+            if [ "$EUID" != "0" ]; then
+                sudo pacman -S binutils --noconfirm
+            else
+                pacman -S binutils --noconfirm
+            fi
         fi
 
     command -v make >/dev/null 2>&1 ||
         err "Blackman needs base-devel to work" ||
-        if [ "$EUID" != "0" ]; then
-            sudo pacman -S base-devel --noconfirm
-        else
-            pacman -S base-devel --noconfirm
+        if ask_pkg_install "base-devel"; then
+            if [ "$EUID" != "0" ]; then
+                sudo pacman -S base-devel --noconfirm
+            else
+                pacman -S base-devel --noconfirm
+            fi
         fi
 
     command -v svn >/dev/null 2>&1 ||
         err "Blackman needs Subversion to work" ||
-        if [ "$EUID" != "0" ]; then
-            sudo pacman -S subversion --noconfirm
-        else
-            pacman -S subversion --noconfirm
+        if ask_pkg_install "subversion"; then
+            if [ "$EUID" != "0" ]; then
+                sudo pacman -S subversion --noconfirm
+            else
+                pacman -S subversion --noconfirm
+            fi
         fi
 
     command -v git >/dev/null 2>&1 ||
         err "Blackman needs git to work" ||
-        if [ "$EUID" != "0" ]; then
-            sudo pacman -S git --noconfirm
-        else
-            pacman -S git --noconfirm
+        if ask_pkg_install "git"; then
+            if [ "$EUID" != "0" ]; then
+                sudo pacman -S git --noconfirm
+            else
+                pacman -S git --noconfirm
+            fi
         fi
 
     return "${SUCCESS}"
