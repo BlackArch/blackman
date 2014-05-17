@@ -193,38 +193,6 @@ check_env()
         cri "Pacman locked - rm /var/lib/pacman/db.lck"
     fi
 
-    command -v strip >/dev/null 2>&1 ||
-        err "Blackman needs binutils to work" ||
-        if [ "$EUID" != "0" ]; then
-            sudo pacman -S binutils --noconfirm
-        else
-            pacman -S binutils --noconfirm
-        fi
-
-    command -v make >/dev/null 2>&1 ||
-        err "Blackman needs base-devel to work" ||
-        if [ "$EUID" != "0" ]; then
-            sudo pacman -S base-devel --noconfirm
-        else
-            pacman -S base-devel --noconfirm
-        fi
-
-    command -v svn >/dev/null 2>&1 ||
-        err "Blackman needs Subversion to work" ||
-        if [ "$EUID" != "0" ]; then
-            sudo pacman -S subversion --noconfirm
-        else
-            pacman -S subversion --noconfirm
-        fi
-
-    command -v git >/dev/null 2>&1 ||
-        err "Blackman needs git to work" ||
-        if [ "$EUID" != "0" ]; then
-            sudo pacman -S git --noconfirm
-        else
-            pacman -S git --noconfirm
-        fi
-
     return "${SUCCESS}"
 }
 
