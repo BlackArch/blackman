@@ -196,12 +196,14 @@ ask_pkg_install()
     printf "[?] About to install %s [Y/n]: " "${pkg}"
     read a
     if [ "${a}" == "n" ] || [ "${a}" == "N" ]; then
-        return "${FAILURE}"
+        ret=${FAILURE}
     else
-        return "${SUCCESS}"
+        ret=${SUCCESS}
     fi
 
     printf "%s" "${NC}"
+
+    return "${ret}"
 
 }
 
