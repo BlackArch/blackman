@@ -421,7 +421,7 @@ list_pkgs_from_group()
             found="true"
             path_no_pkgbuild=$(printf "%s" "${REPLY}"| sed 's/\/PKGBUILD//')
             wprintf "[+] %s" "${path_no_pkgbuild##*/}"
-            gprintf "\t%s" "$(cat "${REPLY}"|grep "pkgdesc"|sed 's/pkgdesc=//;s/"//g')"
+            gprintf "\t%s" "$(cat "${REPLY}"|grep "pkgdesc"|cut -d"=" -f2|sed 's/^.\(.*\).$/\1/')"
         done
         [ "${found}" == "false" ] && err "Not packets found for group \'%s\'" "${group}"
         )
