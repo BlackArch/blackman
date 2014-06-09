@@ -157,6 +157,9 @@ OPTIONS:
     FLAGS:
     -f: force
 
+    MISC:
+    -V: blackman version
+
 EOF
 
     printf "%s" "${NC}"
