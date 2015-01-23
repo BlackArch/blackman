@@ -140,7 +140,7 @@ OPTIONS:
 
     PACKAGES:
     -s <pkg>: search package
-    -i <pkg>: download and compile package
+    -i <pkg>: download, compile and install package
     -g <group>: install all packages inside a blackarch group
     -a: install all packages from all groups
 
