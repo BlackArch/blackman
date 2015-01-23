@@ -479,7 +479,7 @@ sort_tools()
 # parse command line options
 get_opts()
 {
-    while getopts s:i:g:aulp:uhD:fvVH flags
+    while getopts s:i:g:alp:uhD:fvVH flags
     do
         case ${flags} in
             s)
@@ -504,10 +504,10 @@ get_opts()
                 opt_mode="list_pkgs_from_group"
                 opt_arg=${OPTARG}
                 ;;
-            u)
-                opt_mode="update_system"
-                opt_arg=${OPTARG}
-                ;;
+            #u)
+            #    opt_mode="update_system"
+            #    opt_arg=${OPTARG}
+            #    ;;
             u)
                 opt_mode="update_repo"
                 ;;
