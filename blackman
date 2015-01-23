@@ -25,7 +25,7 @@
 
 
 # blackman version
-VERSION="blackman v0.5.5"
+VERSION="blackman v0.5.6"
 
 # url blackarch repository
 REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
@@ -285,15 +285,22 @@ check_init()
 search()
 {
     pkg=${1}
-    found="${FAILURE}"
+    local found="${FAILURE}"
 
-    find "${REPO_PKGS}/" -name "*${pkg}*" -type d | ( while read -r; do
-        found="${SUCCESS}"
-        wprintf "[+] %s" "${REPLY##*/}"
-        gprintf "\t%s" "$(cat "${REPLY}/PKGBUILD"|grep "pkgdesc"|cut -d"=" -f2|sed 's/^.\(.*\).$/\1/')"
-    done
-    [ "${found}" == "${FAILURE}" ] && err "Package \'%s\' not found" "${pkg}" )
-
+    find "${REPO_PKGS}/" -name PKGBUILD | ( while read -r; do
+            package=$(local _var=${REPLY%/*}; echo "${_var##*/}")
+            if [[ "${package}" =~ "${pkg}" ]]; then
+                found="${SUCCESS}"
+                wprintf "[+] %s" "${package}"
+                gprintf "\t%s" "$(cat "${REPLY}"|grep "pkgdesc"|cut -d"=" -f2|sed 's/^.\(.*\).$/\1/')"
+            elif grep pkgdesc "${REPLY}"| grep -qi "${pkg}"; then
+                found="${SUCCESS}"
+                wprintf "[+] %s" "$(local _var=${REPLY%/*}; echo "${_var##*/}")"
+                gprintf "\t%s" "$(cat "${REPLY}"|grep "pkgdesc"|cut -d"=" -f2|sed 's/^.\(.*\).$/\1/')"
+            fi
+        done
+        [ "${found}" == "${FAILURE}" ] && err "Package \'%s\' not found" "${pkg}"
+     )
 
     return "${found}"
 }

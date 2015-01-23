@@ -22,8 +22,7 @@ OPTIONS:
     REPOSITORY:
     -l: list blackarch groups
     -p <group>: list packages from group
-    -u: update system [not implemented yet - v0.X]
-    -d: update blackarch repository
+    -u: update blackarch repository
 
     SORT TOOLS:
     -h: sort tools into main directory [~/haxx default]
@@ -38,7 +37,7 @@ SORT TOOLS EXAMPLE
     [ blackarch blackman ]# ./blackman -h
     --==[ blackman by nullsecurity.net ]==--
     [+] Creating /root/haxx dir for tools
-    
+
     [+] bowcaster tool added to blackarch group
     [+] cms-explorer tool added to blackarch group
     [+] dirb tool added to blackarch group
@@ -67,24 +66,24 @@ SORT TOOLS EXAMPLE
     [+] sploitctl tool added to automation group
     [+] wnmap tool added to automation group
     [+] xortool tool added to crypto group
-    
+
     [..]
-    
+
     [+] Done!
-    
+
     [ blackarch blackman ]# ls ~/haxx/
-    blackarch    forensic       automation   backdoor 
-    binary       bluetooth      audit        cracker   
-    crypto       database       debugger     decompiler   
-    defensive    disassembler   dos          drone   
-    exploitation fingerprint    firmware     forensic   
-    fuzzer       hardware       honeypot     keylogger   
-    malware      misc           mobile       networking   
-    nfc          packer         proxy        recon 
-    reversing    scanner        sniffer      social 
-    spoof        model          tunnel       unpacker 
+    blackarch    forensic       automation   backdoor
+    binary       bluetooth      audit        cracker
+    crypto       database       debugger     decompiler
+    defensive    disassembler   dos          drone
+    exploitation fingerprint    firmware     forensic
+    fuzzer       hardware       honeypot     keylogger
+    malware      misc           mobile       networking
+    nfc          packer         proxy        recon
+    reversing    scanner        sniffer      social
+    spoof        model          tunnel       unpacker
     voip         webapp         windows      wireless
-    
+
     [ blackarch haxx ]# tree
     .
     |-- automation
@@ -177,4 +176,4 @@ SORT TOOLS EXAMPLE
     `-- wireless
         `-- netdiscover -> /usr/share/netdiscover
 
-    
+
