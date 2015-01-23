@@ -170,7 +170,7 @@ EOF
 # leet banner, very important
 banner()
 {
-    printf "%s--==[ blackman by nullsecurity.net ]==--%s\n" "${YELLOW}" "${NC}"
+    printf "%s--==[ blackman - BlackArch ]==--%s\n" "${YELLOW}" "${NC}"
 
     return "${SUCCESS}"
 }
