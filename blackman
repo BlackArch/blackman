@@ -25,7 +25,7 @@
 
 
 # blackman version
-VERSION="blackman v0.5.6"
+VERSION="blackman v0.5.7"
 
 # url blackarch repository
 REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
@@ -313,11 +313,11 @@ check_pkg()
 
     if grep -q "${pkg}" "${WORLD}"; then
         wprintf "[+] Package %s already installed" "${pkg}"
-        ver_PKGBUILD=$(grep "pkgver=" "${REPO_PKGS}/${pkg}/PKGBUILD" |sed 's/pkgver=//')
+        ver_PKGBUILD=$(grep "pkgver=" "${REPO_PKGS}/${pkg}/PKGBUILD" |sed "s/pkgver=//;s/'//g")
         ver_installed=$(pacman -Qi "${pkg}" 2>/dev/null|grep "Version"|cut -d":" -f2|sed 's/ //g;s/-.*//')
         [ "${ver_installed}"  == "" ] && return "${FAILURE}" # not installed
         if [ "${ver_PKGBUILD}" == "${ver_installed}" ]; then
-            wprintf "[+] Package %s up to date %s" "${pkg}" "${FORCE-- set -f if you want to install it anyway}"
+            wprintf "[+] Package %s up to date (v%s) \n  %s" "${pkg}" "${ver_PKGBUILD}" "${FORCE- ** reinstall with -f arg}"
             return "${SUCCESS}"
         else
             wprintf "[+] Installing update version for package %s" "${pkg}"
