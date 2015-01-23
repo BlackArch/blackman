@@ -147,8 +147,7 @@ OPTIONS:
     REPOSITORY:
     -l: list blackarch groups
     -p <group>: list packages from group
-    -u: update system [not implemented yet - v0.X]
-    -d: update blackarch repository
+    -u: update blackarch repository
 
     SORT TOOLS:
     -h: sort tools into main directory [${SORT_TOOLS_DIR} default]
@@ -480,7 +479,7 @@ sort_tools()
 # parse command line options
 get_opts()
 {
-    while getopts s:i:g:aulp:dhD:fvVH flags
+    while getopts s:i:g:aulp:uhD:fvVH flags
     do
         case ${flags} in
             s)
@@ -509,7 +508,7 @@ get_opts()
                 opt_mode="update_system"
                 opt_arg=${OPTARG}
                 ;;
-            d)
+            u)
                 opt_mode="update_repo"
                 ;;
             h)
