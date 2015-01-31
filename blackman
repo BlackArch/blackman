@@ -25,7 +25,7 @@
 
 
 # blackman version
-VERSION="blackman v0.5.7"
+VERSION="blackman v0.5.7.2"
 
 # url blackarch repository
 REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
@@ -348,8 +348,8 @@ install_pkg()
 	    cd "${TMP_DIR_INSTALL}/${pkg}"
 
         # check and resolve dependencies with blackarch packages
-        if grep -q "depends" PKGBUILD; then
-            grep "depends" PKGBUILD | sed "s/depends=(//;s/)//;s/'//g;s/ /\n/g"|
+        if grep -q "^depends=" PKGBUILD; then
+            grep "^depends=" PKGBUILD | sed "s/depends=(//;s/)//;s/'//g;s/ /\n/g"|
                 while read -r; do
                     if [ -d "${REPO_PKGS}/${REPLY}" ]; then
                         wprintf "[+] BlackArch dependencies detected - Installing..."
