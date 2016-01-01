@@ -306,7 +306,11 @@ search()
     return "${found}"
 }
 
-# check if package is already installed and up to date
+compare_version()
+{
+    test "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1";
+}
+
 # return SUCCESS if already installed and FAILURE otherwise
 check_pkg()
 {
@@ -335,6 +339,7 @@ check_pkg()
 install_pkg()
 {
     pkg=${1}
+    pacman_version=$(pacman -Qi "pacman" 2>/dev/null|grep "Version"|cut -d":" -f2|sed 's/ //g;s/-.*//')
     pacman_extra=${2-""}
 
 
@@ -358,12 +363,19 @@ install_pkg()
                 done
         fi
 
-        if [[ ${UID} -ne 0 ]]; then
-            makepkg -sf --noconfirm
-        else
-            makepkg -sf --asroot --noconfirm
-        fi
-
+        if compare_version ${pacman_version} "4.2"; then
+	    if [[ ${UID} -eq 0 ]]; then
+	        cri "blackman must not be run as root"
+            else
+	        makepkg -sf --noconfirm
+	    fi
+	else
+	    if [[ ${UID} -ne 0 ]]; then
+	        makepkg -sf --noconfirm
+	    else
+	        makepkg -sf --asroot --noconfirm
+	    fi
+	fi
         [ "${?}" != "0" ] && cri "Something wrong with makepkg: %s" "${pkg}"
         sudo pacman -U *.xz ${pacman_extra}
 
