@@ -60,6 +60,7 @@ SORT_TOOLS_DIR="${LOCAL_BLACKMAN}/haxx"
 SUCCESS="0"
 FAILURE="1"
 
+# TODO
 # verbose mode - default: quiet
 VERBOSE="/dev/null"
 
