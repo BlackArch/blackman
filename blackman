@@ -24,7 +24,7 @@
 ################################################################################
 
 # blackman version
-VERSION="blackman v0.5.7.5"
+VERSION="blackman v0.5.8"
 
 # url blackarch repository
 REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
