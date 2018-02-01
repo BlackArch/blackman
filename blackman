@@ -23,15 +23,17 @@
 #                                                                              #
 ################################################################################
 
-
 # blackman version
-VERSION="blackman v0.5.7.4"
+VERSION="blackman v0.5.7.5"
 
 # url blackarch repository
 REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
 
+# local base directory for blackman
+LOCAL_BLACKMAN="${HOME}/.blackman"
+
 # copy of the blackarch repository
-LOCAL_REPO="${HOME}/.blackarch"
+LOCAL_REPO="${LOCAL_BLACKMAN}/blackarch"
 
 # meta directory for metadata files
 META="${LOCAL_REPO}/meta"
@@ -52,33 +54,26 @@ ERROR_LOG="${LOCAL_REPO}/meta/errors"
 TMP_DIR_INSTALL="/tmp"
 
 # directory for sort tools
-if [ "${UID}" == "0" ]; then
-    SORT_TOOLS_DIR="/root/haxx"
-else
-    SORT_TOOLS_DIR="/home/${USER}/haxx"
-fi
-
-# true / false
-FALSE="0"
-TRUE="1"
+SORT_TOOLS_DIR="${LOCAL_BLACKMAN}/haxx"
 
 # return codes
 SUCCESS="0"
 FAILURE="1"
 
+# TODO
 # verbose mode - default: quiet
 VERBOSE="/dev/null"
 
 # colors
 WHITE="$(tput bold ; tput setaf 7)"
-GREEN="$(tput setaf 2)"
 RED="$(tput bold; tput setaf 1)"
 YELLOW="$(tput bold ; tput setaf 3)"
 GREY="$(tput bold ; tput setaf 0)"
 NC="$(tput sgr0)" # No Color
 
-
-wprintf() {
+# print in white
+wprintf()
+{
     fmt=${1}
     shift
     printf "%s${fmt}%s\n" "${WHITE}" "$@" "${NC}"
@@ -86,14 +81,15 @@ wprintf() {
     return "${SUCCESS}"
 }
 
-gprintf() {
+# print in grey
+gprintf()
+{
     fmt=${1}
     shift
     printf "%s${fmt}%s\n" "${GREY}" "$@" "${NC}"
 
     return "${SUCCESS}"
 }
-
 
 # print warning
 warn()
@@ -105,7 +101,7 @@ warn()
     return "${SUCCESS}"
 }
 
-# print error and exit
+# print error and return failure
 err()
 {
     fmt=${1}
@@ -127,12 +123,9 @@ cri()
     exit "${FAILURE}"
 }
 
-
 # usage and help
 usage()
 {
-    printf "%s" "${WHITE}"
-
     cat <<EOF
 Usage: ${0##*/} [options] | <misc>
 
@@ -157,16 +150,14 @@ OPTIONS:
     -f: force
 
     MISC:
+    -v: verbose
     -V: blackman version
     -H: this
 
 EOF
 
-    printf "%s" "${NC}"
-
     return "${SUCCESS}"
 }
-
 
 # leet banner, very important
 banner()
@@ -176,19 +167,18 @@ banner()
     return "${SUCCESS}"
 }
 
-
-# check argument count
-check_argc()
-{
-    return "${SUCCESS}"
-}
-
-
-# check if required arguments were selected
-check_args()
-{
-    return "${SUCCESS}"
-}
+# # TODO
+# # check argument count
+# check_argc()
+# {
+#     return "${SUCCESS}"
+# }
+#
+# # check if required arguments were selected
+# check_args()
+# {
+#     return "${SUCCESS}"
+# }
 
 ask_pkg_install()
 {
@@ -210,6 +200,7 @@ ask_pkg_install()
 
 }
 
+# check if environment has everything it need. Run only once.
 check_env()
 {
     if [ -f /var/lib/pacman/db.lck ]; then
@@ -219,7 +210,7 @@ check_env()
     command -v strip >/dev/null 2>&1 ||
         err "Blackman needs binutils to work" ||
         if ask_pkg_install "binutils"; then
-            if [ "$EUID" != "0" ]; then
+            if [ "$(id -u)" != "0" ]; then
                 sudo pacman -S binutils --noconfirm
             else
                 pacman -S binutils --noconfirm
@@ -229,7 +220,7 @@ check_env()
     command -v make >/dev/null 2>&1 ||
         err "Blackman needs base-devel to work" ||
         if ask_pkg_install "base-devel"; then
-            if [ "$EUID" != "0" ]; then
+            if [ "$(id -u)" != "0" ]; then
                 sudo pacman -S base-devel --noconfirm
             else
                 pacman -S base-devel --noconfirm
@@ -239,7 +230,7 @@ check_env()
     command -v svn >/dev/null 2>&1 ||
         err "Blackman needs Subversion to work" ||
         if ask_pkg_install "subversion"; then
-            if [ "$EUID" != "0" ]; then
+            if [ "$(id -u)" != "0" ]; then
                 sudo pacman -S subversion --noconfirm
             else
                 pacman -S subversion --noconfirm
@@ -249,7 +240,7 @@ check_env()
     command -v git >/dev/null 2>&1 ||
         err "Blackman needs git to work" ||
         if ask_pkg_install "git"; then
-            if [ "$EUID" != "0" ]; then
+            if [ "$(id -u)" != "0" ]; then
                 sudo pacman -S git --noconfirm
             else
                 pacman -S git --noconfirm
@@ -262,11 +253,10 @@ check_env()
 # check if its first time for blackman and set everything up
 check_init()
 {
-    printf "%s" "${WHITE}"
     # check blackarch repository
     if ! [ -d "${LOCAL_REPO}" ]; then
         printf "[+] First Blackman Init - Setting up... \n\n"
-        cd "${HOME}"
+        check_env
         git clone "${REMOTE_REPO}" "${LOCAL_REPO}"
     fi
 
@@ -276,8 +266,6 @@ check_init()
     fi
 
     ! [ -f "${WORLD}" ] && touch "${WORLD}"
-
-    printf "%s" "${NC}"
 
     return "${SUCCESS}"
 }
@@ -293,11 +281,11 @@ search()
             if [[ "${package}" =~ "${pkg}" ]]; then
                 found="${SUCCESS}"
                 wprintf "[+] %s" "${package}"
-                gprintf "\t%s" "$(cat "${REPLY}"|grep "pkgdesc"|cut -d"=" -f2|sed 's/^.\(.*\).$/\1/')"
+                gprintf "\t%s" "$(grep "pkgdesc" < "${REPLY}" | cut -d"=" -f2 | sed 's/^.\(.*\).$/\1/')"
             elif grep pkgdesc "${REPLY}"| grep -qi "${pkg}"; then
                 found="${SUCCESS}"
                 wprintf "[+] %s" "$(local _var=${REPLY%/*}; echo "${_var##*/}")"
-                gprintf "\t%s" "$(cat "${REPLY}"|grep "pkgdesc"|cut -d"=" -f2|sed 's/^.\(.*\).$/\1/')"
+                gprintf "\t%s" "$(grep "pkgdesc" < "${REPLY}" | cut -d"=" -f2 | sed 's/^.\(.*\).$/\1/')"
             fi
         done
         [ "${found}" == "${FAILURE}" ] && err "Package \'%s\' not found" "${pkg}"
@@ -364,23 +352,24 @@ install_pkg()
         fi
 
         if compare_version ${pacman_version} "4.2"; then
-	    if [[ ${UID} -eq 0 ]]; then
-	        cri "blackman must not be run as root"
+            if [[ "$(id -u)" -eq 0 ]]; then
+                cri "blackman must not be run as root"
             else
-	        makepkg -sf --noconfirm
-	    fi
-	else
-	    if [[ ${UID} -ne 0 ]]; then
-	        makepkg -sf --noconfirm
-	    else
-	        makepkg -sf --asroot --noconfirm
-	    fi
-	fi
+                makepkg -sf --noconfirm
+            fi
+        else
+            if [[ "$(id -u)" -ne 0 ]]; then
+                makepkg -sf --noconfirm
+            else
+                makepkg -sf --asroot --noconfirm
+            fi
+        fi
+
         [ "${?}" != "0" ] && warn "Something wrong with makepkg: %s" "${pkg}"
         sudo pacman -U *.xz ${pacman_extra}
 
         # cleaning up
-	    rm -rf "${TMP_DIR_INSTALL}/${pkg}"
+	    rm -rf "${TMP_DIR_INSTALL:?}/${pkg}"
 
         ! grep -q "${pkg}" "${WORLD}" && printf "%s\n" "${pkg}" >> "${WORLD}"
     else
@@ -496,113 +485,115 @@ sort_tools()
 
     return "${SUCCESS}"
 }
+
 # parse command line options
 get_opts()
 {
-    while getopts s:i:g:alp:uhD:fvVH flags
-    do
+    while getopts s:i:g:alp:uhD:fvVH flags; do
         case ${flags} in
-            s)
-                opt_mode="search"
-                opt_arg=${OPTARG}
-                ;;
-            i)
-                opt_mode="install_pkg"
-                opt_arg=${OPTARG}
-                ;;
-            g)
-                opt_mode="install_group"
-                opt_arg=${OPTARG}
-                ;;
-            a)
-                opt_mode="install_all"
-                ;;
-            l)
-                opt_mode="list_groups"
-                ;;
-            p)
-                opt_mode="list_pkgs_from_group"
-                opt_arg=${OPTARG}
-                ;;
-            #u)
-            #    opt_mode="update_system"
-            #    opt_arg=${OPTARG}
-            #    ;;
-            u)
-                opt_mode="update_repo"
-                ;;
-            h)
-                opt_mode="sort_tools"
-                ;;
-            D)
-                opt_arg=${OPTARG}
-                ;;
-            f)
-                FORCE="true"
-                ;;
-            v)
-                VERBOSE="/dev/stdout"
-                ;;
-            V)
-                printf "%s\n" "${VERSION}"
-                exit "${SUCCESS}"
-                ;;
-            H)
-                ;;
-            *)
-                cri "WTF?! mount /dev/brain"
-                ;;
+        s)
+            opt_mode="search"
+            opt_arg=${OPTARG}
+            ;;
+        i)
+            opt_mode="install_pkg"
+            opt_arg=${OPTARG}
+            ;;
+        g)
+            opt_mode="install_group"
+            opt_arg=${OPTARG}
+            ;;
+        a)
+            opt_mode="install_all"
+            ;;
+        l)
+            opt_mode="list_groups"
+            ;;
+        p)
+            opt_mode="list_pkgs_from_group"
+            opt_arg=${OPTARG}
+            ;;
+        # TODO ?
+        # u)
+        #    opt_mode="update_system"
+        #    opt_arg=${OPTARG}
+        #    ;;
+        u)
+            opt_mode="update_repo"
+            ;;
+        h)
+            opt_mode="sort_tools"
+            ;;
+        D)
+            opt_arg=${OPTARG}
+            ;;
+        f)
+            FORCE="true"
+            ;;
+        v)
+            VERBOSE="/dev/stdout"
+            ;;
+        V)
+            printf "%s\n" "${VERSION}"
+            exit "${SUCCESS}"
+            ;;
+        H)
+            opt_mode="usage"
+            ;;
+        *)
+            cri "WTF?! mount /dev/brain"
+            ;;
         esac
     done
 
     return "${SUCCESS}"
 }
 
-
 # controller and program flow
 main()
 {
     banner
-    check_argc ${*}
-    get_opts ${*}
-    check_args ${*}
+    get_opts "${@}"
     check_init
-    check_env
+    # check for environment should be done once?
+    # check_env
 
     case "${opt_mode}" in
-        "search")
-            search "${opt_arg}"
-            ;;
-        "install_pkg")
-            install_pkg "${opt_arg}"
-            ;;
-        "install_group")
-            install_group "${opt_arg}"
-            ;;
-        "install_all")
-            install_all
-            ;;
-        "update_repo")
-            update_repo
-            ;;
-        "list_groups")
-            list_groups
-            ;;
-        "list_pkgs_from_group")
-            list_pkgs_from_group "${opt_arg}"
-            ;;
-        "sort_tools")
-            sort_tools "${opt_arg}"
-            ;;
-        *)
-            usage
-            ;;
+    "search")
+        search "${opt_arg}"
+        ;;
+    "install_pkg")
+        install_pkg "${opt_arg}"
+        ;;
+    "install_group")
+        install_group "${opt_arg}"
+        ;;
+    "install_all")
+        install_all
+        ;;
+    "update_repo")
+        update_repo
+        ;;
+    "list_groups")
+        list_groups
+        ;;
+    "list_pkgs_from_group")
+        list_pkgs_from_group "${opt_arg}"
+        ;;
+    "sort_tools")
+        sort_tools "${opt_arg}"
+        ;;
+    "usage")
+        usage
+        ;;
+    *)
+        usage
+        ;;
     esac
+
     return "${SUCCESS}"
 }
 
-
 # program start
-main ${*}
+main "${@}"
 
-# EOF
