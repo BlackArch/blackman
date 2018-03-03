@@ -139,6 +139,7 @@ OPTIONS:
 
     REPOSITORY:
     -l: list blackarch groups
+    -n: list native installed blackarch packages
     -p <group>: list packages from group
     -u: update blackarch repository
 
@@ -419,13 +420,30 @@ list_groups()
     return "${SUCCESS}"
 }
 
+list_native()
+{
+	ls ${SORT_TOOLS_DIR}/blackarch |
+	while read -r tool ; do
+		wprintf "[+] %s" "${tool}"
+		grep "${tool}" -rl "${REPO_PKGS}" |grep PKGBUILD | ( while read -r; do
+			package=$(local _var=${REPLY%/*}; echo "${_var##*/}")
+			[[ "$package" == "${tool}" ]] && gprintf "\t%s" "$(cat "${REPLY}" |grep "pkgdesc" |cut -d"=" -f2 |sed 's/^.\(.*\).$/\1/')"
+		done
+		)
+	done
+
+	return "${SUCCESS}"
+}
+
 list_pkgs_from_group()
 {
     group=$1
     found="false"
 
     # fix blackarch- prefix
-    ! printf "%s" "${group}" | grep -q "blackarch-" && group="blackarch-${group}"
+    if [ "${group}" != "blackarch" ]; then
+        ! printf "%s" "${group}" | grep -q "blackarch-" && group="blackarch-${group}"
+    fi 
 
     if grep -q "${group}" "${GROUPS_FILE}"; then
         grep "${group}" -rl "${REPO_PKGS}"|grep PKGBUILD| ( while read -r; do
@@ -434,7 +452,7 @@ list_pkgs_from_group()
             wprintf "[+] %s" "${path_no_pkgbuild##*/}"
             gprintf "\t%s" "$(cat "${REPLY}"|grep "pkgdesc"|cut -d"=" -f2|sed 's/^.\(.*\).$/\1/')"
         done
-        [ "${found}" == "false" ] && err "Not packets found for group \'%s\'" "${group}"
+        [ "${found}" == "false" ] && err "No packets found for group \'%s\'" "${group}"
         )
     else
         cri "Group %s not found" "${group}"
@@ -472,6 +490,7 @@ sort_tools()
         wprintf "[+] Creating %s dir for tools\n" "${SORT_TOOLS_DIR}" &&
         mkdir -p "${SORT_TOOLS_DIR}"
 
+
     pacman -Qgg | grep blackarch |
     while read -r group tool ; do
         mkdir -p "${SORT_TOOLS_DIR}/${group##*-}"
@@ -489,7 +508,7 @@ sort_tools()
 # parse command line options
 get_opts()
 {
-    while getopts s:i:g:alp:uhD:fvVH flags; do
+    while getopts s:i:g:anlp:uhD:fvVH flags; do
         case ${flags} in
         s)
             opt_mode="search"
@@ -508,6 +527,9 @@ get_opts()
             ;;
         l)
             opt_mode="list_groups"
+            ;;
+        n)
+            opt_mode="list_native"
             ;;
         p)
             opt_mode="list_pkgs_from_group"
@@ -576,6 +598,9 @@ main()
         ;;
     "list_groups")
         list_groups
+        ;;
+    "list_native")
+        list_native
         ;;
     "list_pkgs_from_group")
         list_pkgs_from_group "${opt_arg}"
