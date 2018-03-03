@@ -24,7 +24,7 @@
 ################################################################################
 
 # blackman version
-VERSION="blackman v0.5.8"
+VERSION="blackman v0.5.9"
 
 # url blackarch repository
 REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
@@ -443,7 +443,7 @@ list_pkgs_from_group()
     # fix blackarch- prefix
     if [ "${group}" != "blackarch" ]; then
         ! printf "%s" "${group}" | grep -q "blackarch-" && group="blackarch-${group}"
-    fi 
+    fi
 
     if grep -q "${group}" "${GROUPS_FILE}"; then
         grep "${group}" -rl "${REPO_PKGS}"|grep PKGBUILD| ( while read -r; do
