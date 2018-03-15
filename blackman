@@ -422,17 +422,17 @@ list_groups()
 
 list_native()
 {
-	ls ${SORT_TOOLS_DIR}/blackarch |
-	while read -r tool ; do
-		wprintf "[+] %s" "${tool}"
-		grep "${tool}" -rl "${REPO_PKGS}" |grep PKGBUILD | ( while read -r; do
-			package=$(local _var=${REPLY%/*}; echo "${_var##*/}")
-			[[ "$package" == "${tool}" ]] && gprintf "\t%s" "$(cat "${REPLY}" |grep "pkgdesc" |cut -d"=" -f2 |sed 's/^.\(.*\).$/\1/')"
-		done
-		)
-	done
-
-	return "${SUCCESS}"
+    ls ${SORT_TOOLS_DIR}/blackarch |
+    while read -r tool ; do
+    	wprintf "[+] %s" "${tool}"
+    	grep "${tool}" -rl "${REPO_PKGS}" |grep PKGBUILD | ( while read -r; do
+    		package=$(local _var=${REPLY%/*}; echo "${_var##*/}")
+    		[[ "$package" == "${tool}" ]] && gprintf "\t%s" "$(cat "${REPLY}" |grep "pkgdesc" |cut -d"=" -f2 |sed 's/^.\(.*\).$/\1/')"
+    	done
+    	)
+    done
+    
+    return "${SUCCESS}"
 }
 
 list_pkgs_from_group()
@@ -500,6 +500,20 @@ sort_tools()
         fi
     done
 
+    # remove uninstalled tools
+    wprintf "[+] Removing uninstalled tools"
+    removed="false"
+    ls ${SORT_TOOLS_DIR}/blackarch |
+    while read -r tool ; do
+        if ! pacman -Qn "${tool}" &> /dev/null ; then
+            wprintf "[+] ${tool}:" && find -P "${SORT_TOOLS_DIR}" -name "${tool}" -execdir echo -en "\t" ';' -print -delete
+	    # remove tool from world folder
+	    sed -i "/"${tool}"/d" ${WORLD}
+	    removed="true"
+    	fi
+    done
+
+    [ ${removed} == "false" ] && wprintf "[+] No uninstalled tools found"
     wprintf "\n[+] Done!"
 
     return "${SUCCESS}"
