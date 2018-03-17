@@ -24,7 +24,7 @@
 ################################################################################
 
 # blackman version
-VERSION="blackman v0.5.9"
+VERSION="blackman v0.5.10"
 
 # url blackarch repository
 REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
@@ -431,7 +431,7 @@ list_native()
     	done
     	)
     done
-    
+
     return "${SUCCESS}"
 }
 
