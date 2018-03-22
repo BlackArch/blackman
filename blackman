@@ -499,21 +499,16 @@ sort_tools()
             wprintf "[+] %s tool added to %s group" "${tool}" "${group##*-}"
         fi
     done
-
     # remove uninstalled tools
     wprintf "[+] Removing uninstalled tools"
     removed="false"
-    ls ${SORT_TOOLS_DIR}/blackarch |
-    while read -r tool ; do
-        if ! pacman -Qn "${tool}" &> /dev/null ; then
-            wprintf "[+] ${tool}:" && find -P "${SORT_TOOLS_DIR}" -name "${tool}" -execdir echo -en "\t" ';' -print -delete
-	    # remove tool from world folder
-	    sed -i "/"${tool}"/d" ${WORLD}
-	    removed="true"
-    	fi
-    done
+    for tool in $(pacman -Qqn `ls ${SORT_TOOLS_DIR}/blackarch/` 3>&1 1>/dev/null 2>&3- | cut -d' ' -f3 | tr -d \') ; do
+	wprintf "[+] ${tool}:" && find -P "${SORT_TOOLS_DIR}" -name "${tool}" -execdir echo -en "\t" ';' -print -delete;
+	# remove tool from world folder
+	sed -i "/"${tool}"/d" ${WORLD};
+    done && removed="true"
 
-    [ ${removed} == "false" ] && wprintf "[+] No uninstalled tools found"
+    [[ !${removed} == "false" ]] && wprintf "[+] No uninstalled tools found"
     wprintf "\n[+] Done!"
 
     return "${SUCCESS}"
