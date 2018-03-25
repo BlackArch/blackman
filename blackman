@@ -438,15 +438,9 @@ list_native()
 
 upgrade_packages()
 {
-    ls ${SORT_TOOLS_DIR}/blackarch |
-    while read -r tool ; do
-        wprintf "[+] %s" "${tool}"
-        grep "${tool}" -rl "${REPO_PKGS}" |grep PKGBUILD | ( while read -r; do
-                install_pkg ${tool};
-        done
-        )
-    done
-
+    for tool in $(ls ${SORT_TOOLS_DIR}/blackarch); do 
+	install_pkg ${tool};
+    done 
     return "${SUCCESS}"
 }
 
