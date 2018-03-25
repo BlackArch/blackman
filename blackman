@@ -142,6 +142,7 @@ OPTIONS:
     -n: list native installed blackarch packages
     -p <group>: list packages from group
     -u: update blackarch repository
+    -m: upgrade installed packages (-f to reinstall all)
 
     SORT TOOLS:
     -h: sort tools into main directory [${SORT_TOOLS_DIR} default]
@@ -435,6 +436,20 @@ list_native()
     return "${SUCCESS}"
 }
 
+upgrade_packages()
+{
+    ls ${SORT_TOOLS_DIR}/blackarch |
+    while read -r tool ; do
+        wprintf "[+] %s" "${tool}"
+        grep "${tool}" -rl "${REPO_PKGS}" |grep PKGBUILD | ( while read -r; do
+                install_pkg ${tool};
+        done
+        )
+    done
+
+    return "${SUCCESS}"
+}
+
 list_pkgs_from_group()
 {
     group=$1
@@ -517,7 +532,7 @@ sort_tools()
 # parse command line options
 get_opts()
 {
-    while getopts s:i:g:anlp:uhD:fvVH flags; do
+    while getopts s:i:g:anlp:umhD:fvVH flags; do
         case ${flags} in
         s)
             opt_mode="search"
@@ -552,6 +567,9 @@ get_opts()
         u)
             opt_mode="update_repo"
             ;;
+	m)
+	    opt_mode="upgrade_packages"
+	    ;;
         h)
             opt_mode="sort_tools"
             ;;
@@ -605,6 +623,9 @@ main()
     "update_repo")
         update_repo
         ;;
+    "upgrade_packages")
+	upgrade_packages
+	;;
     "list_groups")
         list_groups
         ;;
