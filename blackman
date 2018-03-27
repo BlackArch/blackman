@@ -65,18 +65,18 @@ FAILURE="1"
 VERBOSE="/dev/null"
 
 # colors
-WHITE="$(tput bold ; tput setaf 7)"
-RED="$(tput bold; tput setaf 1)"
-YELLOW="$(tput bold ; tput setaf 3)"
-GREY="$(tput bold ; tput setaf 0)"
-NC="$(tput sgr0)" # No Color
+WHITE="\033[97m"
+RED="\033[91m"
+YELLOW="\033[93m"
+GREY="\033[90m"
+NC="\033[m" # No Color
 
 # print in white
 wprintf()
 {
     fmt=${1}
     shift
-    printf "%s${fmt}%s\n" "${WHITE}" "$@" "${NC}"
+    printf "%b${fmt}%b\n" "${WHITE}" "$@" "${NC}"
 
     return "${SUCCESS}"
 }
@@ -86,7 +86,7 @@ gprintf()
 {
     fmt=${1}
     shift
-    printf "%s${fmt}%s\n" "${GREY}" "$@" "${NC}"
+    printf "%b${fmt}%b\n" "${GREY}" "$@" "${NC}"
 
     return "${SUCCESS}"
 }
@@ -96,7 +96,7 @@ warn()
 {
     fmt=${1}
     shift
-    printf "%s[!] WARNING: ${fmt}%s\n" "${RED}" "${@}" "${NC}"
+    printf "%b[!] WARNING: ${fmt}%b\n" "${RED}" "${@}" "${NC}"
 
     return "${SUCCESS}"
 }
@@ -107,7 +107,7 @@ err()
     fmt=${1}
     shift
     printf "[-] ERROR: ${fmt}\n" "${@}" >> "${ERROR_LOG}"
-    printf "%s[-] ERROR: ${fmt}%s\n" "${RED}" "${@}" "${NC}"
+    printf "%b[-] ERROR: ${fmt}%b\n" "${RED}" "${@}" "${NC}"
 
     return "${FAILURE}"
 }
@@ -117,8 +117,8 @@ cri()
 {
     fmt=${1}
     shift
-    printf "[-] CRITICAL: ${fmt}%s\n" "${@}" >> "${ERROR_LOG}"
-    printf "%s[-] CRITICAL: ${fmt}%s\n" "${RED}" "${@}" "${NC}"
+    printf "[-] CRITICAL: ${fmt}%b\n" "${@}" >> "${ERROR_LOG}"
+    printf "%b[-] CRITICAL: ${fmt}%b\n" "${RED}" "${@}" "${NC}"
 
     exit "${FAILURE}"
 }
@@ -164,7 +164,7 @@ EOF
 # leet banner, very important
 banner()
 {
-    printf "%s--==[ blackman - BlackArch ]==--%s\n" "${YELLOW}" "${NC}"
+    printf "%b--==[ blackman - BlackArch ]==--%b\n" "${YELLOW}" "${NC}"
 
     return "${SUCCESS}"
 }
@@ -186,9 +186,9 @@ ask_pkg_install()
 {
     pkg=${1}
 
-    printf "%s" "${WHITE}"
+    printf "%b" "${WHITE}"
 
-    printf "[?] About to install %s [Y/n]: " "${pkg}"
+    printf "[?] About to install %b [Y/n]: " "${pkg}"
     read a
     if [ "${a}" == "n" ] || [ "${a}" == "N" ]; then
         ret=${FAILURE}
@@ -196,7 +196,7 @@ ask_pkg_install()
         ret=${SUCCESS}
     fi
 
-    printf "%s" "${NC}"
+    printf "%b" "${NC}"
 
     return "${ret}"
 
@@ -282,15 +282,15 @@ search()
             package=$(local _var=${REPLY%/*}; echo "${_var##*/}")
             if [[ "${package}" =~ "${pkg}" ]]; then
                 found="${SUCCESS}"
-                wprintf "[+] %s" "${package}"
-                gprintf "\t%s" "$(grep "pkgdesc" < "${REPLY}" | cut -d"=" -f2 | sed 's/^.\(.*\).$/\1/')"
+                wprintf "[+] %b" "${package}"
+                gprintf "\t%b" "$(grep "pkgdesc" < "${REPLY}" | cut -d"=" -f2 | sed 's/^.\(.*\).$/\1/')"
             elif grep pkgdesc "${REPLY}"| grep -qi "${pkg}"; then
                 found="${SUCCESS}"
-                wprintf "[+] %s" "$(local _var=${REPLY%/*}; echo "${_var##*/}")"
-                gprintf "\t%s" "$(grep "pkgdesc" < "${REPLY}" | cut -d"=" -f2 | sed 's/^.\(.*\).$/\1/')"
+                wprintf "[+] %b" "$(local _var=${REPLY%/*}; echo "${_var##*/}")"
+                gprintf "\t%b" "$(grep "pkgdesc" < "${REPLY}" | cut -d"=" -f2 | sed 's/^.\(.*\).$/\1/')"
             fi
         done
-        [ "${found}" == "${FAILURE}" ] && err "Package \'%s\' not found" "${pkg}"
+        [ "${found}" == "${FAILURE}" ] && err "Package \'%b\' not found" "${pkg}"
      )
 
     return "${found}"
@@ -307,16 +307,16 @@ check_pkg()
     pkg=${1}
 
     if grep -q "${pkg}" "${WORLD}"; then
-        wprintf "[+] Package %s already installed" "${pkg}"
+        wprintf "[+] Package %b already installed" "${pkg}"
         ver_PKGBUILD=$(grep "pkgver=" "${REPO_PKGS}/${pkg}/PKGBUILD" |sed "s/pkgver=//;s/'//g")
         ver_installed=$(pacman -Qi "${pkg}" 2>/dev/null|grep "Version"|cut -d":" -f2|sed 's/ //g;s/-.*//')
         [ "${ver_installed}"  == "" ] && return "${FAILURE}" # not installed
         if [ "${ver_PKGBUILD}" == "${ver_installed}" ]; then
-            wprintf "[+] Package %s up to date (v%s) \n  %s" "${pkg}" "${ver_PKGBUILD}" "${FORCE- ** reinstall with -f arg}"
+            wprintf "[+] Package %b up to date (v%b) \n  %b" "${pkg}" "${ver_PKGBUILD}" "${FORCE- ** reinstall with -f arg}"
             return "${SUCCESS}"
         else
-            wprintf "[+] Installing update version for package %s" "${pkg}"
-            wprintf "[+] Version update from %s -> %s" "${ver_installed}" "${ver_PKGBUILD}"
+            wprintf "[+] Installing update version for package %b" "${pkg}"
+            wprintf "[+] Version update from %b -> %b" "${ver_installed}" "${ver_PKGBUILD}"
             return "${FAILURE}"
         fi
     fi
@@ -367,15 +367,15 @@ install_pkg()
             fi
         fi
 
-        [ "${?}" != "0" ] && warn "Something wrong with makepkg: %s" "${pkg}"
+        [ "${?}" != "0" ] && warn "Something wrong with makepkg: %b" "${pkg}"
         sudo pacman -U *.xz ${pacman_extra}
 
         # cleaning up
 	    rm -rf "${TMP_DIR_INSTALL:?}/${pkg}"
 
-        ! grep -q "${pkg}" "${WORLD}" && printf "%s\n" "${pkg}" >> "${WORLD}"
+        ! grep -q "${pkg}" "${WORLD}" && printf "%b\n" "${pkg}" >> "${WORLD}"
     else
-        cri "Package not found in repository \'%s\'" "${pkg}"
+        cri "Package not found in repository \'%b\'" "${pkg}"
     fi
 
     return "${SUCCESS}"
@@ -387,19 +387,19 @@ install_group()
     group=$1
 
     # fix blackarch- prefix
-    ! printf "%s" "${group}" | grep -q "blackarch" && group="blackarch-${group}"
+    ! printf "%b" "${group}" | grep -q "blackarch" && group="blackarch-${group}"
 
-    wprintf "[+] Installing %s group" "${group}"
+    wprintf "[+] Installing %b group" "${group}"
 
     if grep -q "^$group$" "${GROUPS_FILE}"; then
         grep -lr "$group" "${REPO_PKGS}" | while read -r; do
             # TODO: nicer?
-            rm_file=$(printf "%s" "${REPLY}"|sed 's/\/PKGBUILD//')
-            wprintf "[+] Installing %s package" "${rm_file##*/}"
+            rm_file=$(printf "%b" "${REPLY}"|sed 's/\/PKGBUILD//')
+            wprintf "[+] Installing %b package" "${rm_file##*/}"
             install_pkg "${rm_file##*/}" "--noconfirm --needed"
         done
     else
-        cri "Group \'%s\' does not exist" "${group}"
+        cri "Group \'%b\' does not exist" "${group}"
     fi
 
     return "${SUCCESS}"
@@ -415,7 +415,7 @@ install_all()
 list_groups()
 {
     while read -r; do
-        wprintf "[+] %s" "${REPLY}"
+        wprintf "[+] %b" "${REPLY}"
     done < "${GROUPS_FILE}"
 
     return "${SUCCESS}"
@@ -425,10 +425,10 @@ list_native()
 {
     ls ${SORT_TOOLS_DIR}/blackarch |
     while read -r tool ; do
-    	wprintf "[+] %s" "${tool}"
+    	wprintf "[+] %b" "${tool}"
     	grep "${tool}" -rl "${REPO_PKGS}" |grep PKGBUILD | ( while read -r; do
     		package=$(local _var=${REPLY%/*}; echo "${_var##*/}")
-    		[[ "$package" == "${tool}" ]] && gprintf "\t%s" "$(cat "${REPLY}" |grep "pkgdesc" |cut -d"=" -f2 |sed 's/^.\(.*\).$/\1/')"
+    		[[ "$package" == "${tool}" ]] && gprintf "\t%b" "$(cat "${REPLY}" |grep "pkgdesc" |cut -d"=" -f2 |sed 's/^.\(.*\).$/\1/')"
     	done
     	)
     done
@@ -451,20 +451,20 @@ list_pkgs_from_group()
 
     # fix blackarch- prefix
     if [ "${group}" != "blackarch" ]; then
-        ! printf "%s" "${group}" | grep -q "blackarch-" && group="blackarch-${group}"
+        ! printf "%b" "${group}" | grep -q "blackarch-" && group="blackarch-${group}"
     fi
 
     if grep -q "${group}" "${GROUPS_FILE}"; then
         grep "${group}" -rl "${REPO_PKGS}"|grep PKGBUILD| ( while read -r; do
             found="true"
-            path_no_pkgbuild=$(printf "%s" "${REPLY}"| sed 's/\/PKGBUILD//')
-            wprintf "[+] %s" "${path_no_pkgbuild##*/}"
-            gprintf "\t%s" "$(cat "${REPLY}"|grep "pkgdesc"|cut -d"=" -f2|sed 's/^.\(.*\).$/\1/')"
+            path_no_pkgbuild=$(printf "%b" "${REPLY}"| sed 's/\/PKGBUILD//')
+            wprintf "[+] %b" "${path_no_pkgbuild##*/}"
+            gprintf "\t%b" "$(cat "${REPLY}"|grep "pkgdesc"|cut -d"=" -f2|sed 's/^.\(.*\).$/\1/')"
         done
-        [ "${found}" == "false" ] && err "No packets found for group \'%s\'" "${group}"
+        [ "${found}" == "false" ] && err "No packets found for group \'%b\'" "${group}"
         )
     else
-        cri "Group %s not found" "${group}"
+        cri "Group %b not found" "${group}"
     fi
 
     return "${SUCCESS}"
@@ -478,13 +478,13 @@ update_system()
 
 update_repo()
 {
-    printf "%s" "${WHITE}"
+    printf "%b" "${WHITE}"
 
     cd "${LOCAL_REPO}"
     git fetch --all
     git reset --hard origin/master
 
-    printf "%s" "${NC}"
+    printf "%b" "${NC}"
 
     return "${SUCCESS}"
 }
@@ -496,7 +496,7 @@ sort_tools()
     [ -n "${arg_dir}" ] && SORT_TOOLS_DIR=${arg_dir}
 
     ! [ -d "${SORT_TOOLS_DIR}" ] &&
-        wprintf "[+] Creating %s dir for tools\n" "${SORT_TOOLS_DIR}" &&
+        wprintf "[+] Creating %b dir for tools\n" "${SORT_TOOLS_DIR}" &&
         mkdir -p "${SORT_TOOLS_DIR}"
 
 
@@ -505,7 +505,7 @@ sort_tools()
         mkdir -p "${SORT_TOOLS_DIR}/${group##*-}"
         if ! [ -h "${SORT_TOOLS_DIR}/${group##*-}/${tool}" ]; then
             ln -s "/usr/share/${tool}" "${SORT_TOOLS_DIR}/${group##*-}/"
-            wprintf "[+] %s tool added to %s group" "${tool}" "${group##*-}"
+            wprintf "[+] %b tool added to %b group" "${tool}" "${group##*-}"
         fi
     done
     # remove uninstalled tools
@@ -577,7 +577,7 @@ get_opts()
             VERBOSE="/dev/stdout"
             ;;
         V)
-            printf "%s\n" "${VERSION}"
+            printf "%b\n" "${VERSION}"
             exit "${SUCCESS}"
             ;;
         H)
