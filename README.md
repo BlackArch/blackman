@@ -1,3 +1,6 @@
+# ! blackman is not maintained and needs a rewrite, so use at own risk
+
+
 blackman tool
 -------------
     Small package manager which download, compile -if needed- and install packages from sources.
