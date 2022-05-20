@@ -301,27 +301,25 @@ compare_version()
     test "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1";
 }
 
+
 # return SUCCESS if already installed and FAILURE otherwise
 check_pkg()
 {
     pkg=${1}
-
     if grep -q "${pkg}" "${WORLD}"; then
         wprintf "[+] Package %b already installed" "${pkg}"
-        ver_PKGBUILD=$(grep "pkgver=" "${REPO_PKGS}/${pkg}/PKGBUILD" |sed "s/pkgver=//;s/'//g")
-        ver_installed=$(pacman -Qi "${pkg}" 2>/dev/null|grep "Version"|cut -d":" -f2|sed 's/ //g;s/-.*//')
-        [ "${ver_installed}"  == "" ] && return "${FAILURE}" # not installed
-        if [ "${ver_PKGBUILD}" == "${ver_installed}" ]; then
-            wprintf "[+] Package %b up to date (v%b) \n  %b" "${pkg}" "${ver_PKGBUILD}" "${FORCE- ** reinstall with -f arg}"
-            return "${SUCCESS}"
-        else
-            wprintf "[+] Installing update version for package %b" "${pkg}"
-            wprintf "[+] Version update from %b -> %b" "${ver_installed}" "${ver_PKGBUILD}"
-            return "${FAILURE}"
-        fi
+        return "${FAILURE}" # package name found in world file(I dont know what this means, just keep it)
     fi
 
-    # pkg isnt inside world file - not installed
+    ver_PKGBUILD=$(grep "pkgver=" "${REPO_PKGS}/${pkg}/PKGBUILD" |sed "s/pkgver=//;s/'//g")
+    ver_installed=$(pacman -Qi "${pkg}" 2>/dev/null|grep "Version"|cut -d":" -f2- )
+    # ver_PKG in ver_installed: skip it by return 1
+    # eg: ver_installed = 1:1.2.0-2
+    #     ver_PKGBUILD  = 1.2.0     will successfully match
+    # that means your local pacage is allready newest version.
+    [[ "${ver_installed}" = *"${ver_PKGBUILD}"* ]] && wprintf "[+] Package %b up to date [v%b]  %b" "${pkg}" "${ver_PKGBUILD}" "${FORCE- ** reinstall with -f arg}" && return "${SUCCESS}"
+    # version number not match: return 0
+    wprintf "[+] Version update for package %b from %b -> %b" "${pkg}" "${ver_installed}" "${ver_PKGBUILD}"
     return "${FAILURE}"
 }
 
@@ -368,7 +366,7 @@ install_pkg()
         fi
 
         [ "${?}" != "0" ] && warn "Something wrong with makepkg: %b" "${pkg}"
-        sudo pacman -U *.xz ${pacman_extra}
+        sudo pacman -U *.zst ${pacman_extra}
 
         # cleaning up
 	    rm -rf "${TMP_DIR_INSTALL:?}/${pkg}"
