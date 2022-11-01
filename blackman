@@ -24,7 +24,7 @@
 ################################################################################
 
 # blackman version
-VERSION="blackman v0.5.13"
+VERSION="blackman v0.5.14"
 
 # url blackarch repository
 REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
@@ -368,7 +368,7 @@ install_pkg()
         fi
 
         [ "${?}" != "0" ] && warn "Something wrong with makepkg: %b" "${pkg}"
-        sudo pacman -U *.xz ${pacman_extra}
+        sudo pacman -U *.zst ${pacman_extra}
 
         # cleaning up
 	    rm -rf "${TMP_DIR_INSTALL:?}/${pkg}"
