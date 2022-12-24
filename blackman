@@ -27,7 +27,7 @@
 VERSION="blackman v0.5.14"
 
 # url blackarch repository
-REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
+REMOTE_REPO="git@github.com:BlackArch/blackarch.git"
 
 # local base directory for blackman
 LOCAL_BLACKMAN="${HOME}/.blackman"
